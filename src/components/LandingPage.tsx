@@ -4,17 +4,17 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { SlidingNumber } from "@/components/animate-ui/text/sliding-number";
 import { motion } from "motion/react";
-import { 
-  Sparkles, 
-  Mic, 
-  Camera, 
-  Brain, 
-  FileText, 
+import {
+  Sparkles,
+  Mic,
+  Camera,
+  Brain,
+  FileText,
   Users,
   ArrowRight,
   Play,
   Zap,
-  MessageSquare
+  MessageSquare,
 } from "lucide-react";
 
 interface LandingPageProps {
@@ -29,49 +29,54 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
       id: "ai-prep",
       icon: Sparkles,
       title: "AI Meeting Preparation",
-      description: "Upload documents and customize your AI agent before meetings. Get intelligent insights and automated todo generation.",
+      description:
+        "Upload documents and customize your AI agent before meetings. Get intelligent insights and automated todo generation.",
       stats: { value: 95, label: "Accuracy Rate" },
-      color: "from-blue-500 to-purple-600"
+      color: "from-blue-500 to-purple-600",
     },
     {
-      id: "transcription", 
+      id: "transcription",
       icon: Mic,
       title: "Real-time Transcription",
-      description: "Live meeting transcription with speaker identification and timestamp tracking via WebSocket connection.",
+      description:
+        "Live meeting transcription with speaker identification and timestamp tracking via WebSocket connection.",
       stats: { value: 99, label: "Uptime" },
-      color: "from-green-500 to-teal-600"
+      color: "from-green-500 to-teal-600",
     },
     {
       id: "screenshot",
-      icon: Camera, 
+      icon: Camera,
       title: "Smart Screenshot Analysis",
-      description: "One-click screenshot capture with OCR text extraction and AI-powered content analysis using Vision models.",
+      description:
+        "One-click screenshot capture with OCR text extraction and AI-powered content analysis using Vision models.",
       stats: { value: 87, label: "OCR Accuracy" },
-      color: "from-orange-500 to-red-600"
+      color: "from-orange-500 to-red-600",
     },
     {
       id: "followup",
       icon: Brain,
-      title: "Post-Meeting Intelligence", 
-      description: "AI-generated meeting summaries, follow-up emails, and action item tracking with smart recommendations.",
+      title: "Post-Meeting Intelligence",
+      description:
+        "AI-generated meeting summaries, follow-up emails, and action item tracking with smart recommendations.",
       stats: { value: 92, label: "User Satisfaction" },
-      color: "from-purple-500 to-pink-600"
+      color: "from-purple-500 to-pink-600",
     },
     {
       id: "rag",
       icon: FileText,
       title: "RAG Pipeline Integration",
-      description: "Advanced document processing with LangChain RAG pipeline for intelligent knowledge base queries.",
+      description:
+        "Advanced document processing with LangChain RAG pipeline for intelligent knowledge base queries.",
       stats: { value: 89, label: "Relevance Score" },
-      color: "from-indigo-500 to-blue-600"
-    }
+      color: "from-indigo-500 to-blue-600",
+    },
   ];
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
       {/* Hero Section */}
       <div className="container mx-auto px-4 py-16">
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8 }}
@@ -89,9 +94,9 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
               AI Meeting Copilot
             </h1>
           </div>
-          
+
           <p className="text-xl text-muted-foreground mb-8 max-w-3xl mx-auto">
-            Transform your meetings with intelligent AI assistance. From preparation to follow-up, 
+            Transform your meetings with intelligent AI assistance. From preparation to follow-up,
             experience the future of collaborative productivity.
           </p>
 
@@ -110,13 +115,14 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
             </div>
             <div className="text-center">
               <div className="text-3xl font-bold text-primary">
-                <SlidingNumber number={24} />/7
+                <SlidingNumber number={24} />
+                /7
               </div>
               <p className="text-sm text-muted-foreground">AI Availability</p>
             </div>
           </div>
 
-          <Button 
+          <Button
             onClick={onGetStarted}
             size="lg"
             className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8 py-3 text-lg"
@@ -154,7 +160,10 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
                   <div className="flex items-center justify-between">
                     <div className="text-center">
                       <div className="text-2xl font-bold text-primary">
-                        <SlidingNumber number={hoveredFeature === feature.id ? feature.stats.value : 0} />%
+                        <SlidingNumber
+                          number={hoveredFeature === feature.id ? feature.stats.value : 0}
+                        />
+                        %
                       </div>
                       <p className="text-xs text-muted-foreground">{feature.stats.label}</p>
                     </div>
