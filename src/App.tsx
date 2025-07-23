@@ -13,7 +13,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { ManagementBar } from "@/components/animate-ui/ui-elements/management-bar";
-import { Video, Sparkles, Copy, X } from "lucide-react";
+import { Video, Sparkles, Copy, X, Sun, Moon } from "lucide-react";
 import MeetingAIInput from "@/components/ui/ask-ai-input";
 import { parseZoomMeetingLink } from "@/lib/utils";
 import PostMeetingFollowUp from "@/components/PostMeetingFollowUp";
@@ -315,8 +315,38 @@ function App() {
     summary: "Meeting summary will be generated..."
   };
 
+  // dark mode 切换
+  const [isDark, setIsDark] = useState(() => {
+    if (typeof window !== "undefined") {
+      return document.documentElement.classList.contains("dark");
+    }
+    return true;
+  });
+  const toggleDark = () => {
+    setIsDark((prev) => {
+      const next = !prev;
+      if (next) {
+        document.documentElement.classList.add("dark");
+      } else {
+        document.documentElement.classList.remove("dark");
+      }
+      return next;
+    });
+  };
+
   return (
     <div className="App min-h-screen bg-background">
+      {/* Dark mode toggle button 右上角 */}
+      <div className="fixed top-4 right-4 z-50">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={toggleDark}
+          title={isDark ? "切换到浅色模式" : "切换到深色模式"}
+        >
+          {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+        </Button>
+      </div>
       {showFollowUp ? (
         <PostMeetingFollowUp 
           meetingData={mockMeetingData}
