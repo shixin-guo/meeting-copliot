@@ -1,27 +1,26 @@
-import React, { useState, useEffect } from 'react';
-import { motion, useScroll, useTransform } from 'motion/react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
-import DemoVideo from '@/components/DemoVideo';
-import { 
-  Sparkles, 
-  Video, 
-  Brain, 
-  FileText, 
-  Users, 
-  BarChart3, 
-  MessageSquare, 
-  Camera, 
-  Mail, 
+import type React from "react";
+import { useState, useEffect } from "react";
+import { motion, useScroll, useTransform } from "motion/react";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import DemoVideo from "@/components/DemoVideo";
+import {
+  Sparkles,
+  Brain,
+  FileText,
+  Users,
+  BarChart3,
+  MessageSquare,
+  Camera,
+  Mail,
   CheckCircle,
   ArrowRight,
   Play,
   Zap,
   Shield,
   Globe,
-  Star
-} from 'lucide-react';
+  Star,
+} from "lucide-react";
 
 interface LandingPageProps {
   onStartMeeting?: () => void;
@@ -38,52 +37,59 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStartMeeting }) => {
     {
       icon: <Brain className="w-8 h-8" />,
       title: "AI Meeting Copilot",
-      description: "Your intelligent meeting companion that understands context, takes notes, and provides real-time insights.",
+      description:
+        "Your intelligent meeting companion that understands context, takes notes, and provides real-time insights.",
       image: "/images/meetingsdk-web-client-view.gif",
-      details: ["Real-time AI assistance", "Context-aware suggestions", "Smart meeting preparation"]
+      details: [
+        "Real-time AI assistance",
+        "Context-aware suggestions",
+        "Smart meeting preparation",
+      ],
     },
     {
       icon: <Camera className="w-8 h-8" />,
       title: "Smart Screenshot Analysis",
-      description: "Automatically capture and analyze screenshots with advanced OCR and content extraction.",
+      description:
+        "Automatically capture and analyze screenshots with advanced OCR and content extraction.",
       image: "/images/meetingsdk-web-component-view.gif",
-      details: ["Instant OCR processing", "Content extraction", "Visual meeting notes"]
+      details: ["Instant OCR processing", "Content extraction", "Visual meeting notes"],
     },
     {
       icon: <MessageSquare className="w-8 h-8" />,
       title: "Real-time Transcription",
       description: "Advanced speech-to-text with AI-powered analysis and key point extraction.",
       image: "/images/meetingsdk-web-client-view.gif",
-      details: ["Live transcription", "Key point detection", "Speaker identification"]
+      details: ["Live transcription", "Key point detection", "Speaker identification"],
     },
     {
       icon: <Mail className="w-8 h-8" />,
       title: "Post-Meeting Follow-up",
       description: "Automated email generation, action items, and meeting summaries powered by AI.",
       image: "/images/meetingsdk-web-component-view.gif",
-      details: ["Auto email drafts", "Action item tracking", "Meeting summaries"]
+      details: ["Auto email drafts", "Action item tracking", "Meeting summaries"],
     },
     {
       icon: <FileText className="w-8 h-8" />,
       title: "Document Intelligence",
-      description: "Upload and analyze meeting materials with AI-powered insights and recommendations.",
+      description:
+        "Upload and analyze meeting materials with AI-powered insights and recommendations.",
       image: "/images/meetingsdk-web-client-view.gif",
-      details: ["Document analysis", "Content insights", "Smart recommendations"]
+      details: ["Document analysis", "Content insights", "Smart recommendations"],
     },
     {
       icon: <BarChart3 className="w-8 h-8" />,
       title: "Meeting Analytics",
       description: "Comprehensive meeting insights with sentiment analysis and engagement metrics.",
       image: "/images/meetingsdk-web-component-view.gif",
-      details: ["Engagement metrics", "Sentiment analysis", "Performance insights"]
-    }
+      details: ["Engagement metrics", "Sentiment analysis", "Performance insights"],
+    },
   ];
 
   const stats = [
     { number: "99%", label: "Accuracy Rate" },
     { number: "50%", label: "Time Saved" },
     { number: "10k+", label: "Meetings Analyzed" },
-    { number: "24/7", label: "AI Availability" }
+    { number: "24/7", label: "AI Availability" },
   ];
 
   useEffect(() => {
@@ -96,13 +102,13 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStartMeeting }) => {
   return (
     <div className="min-h-screen bg-white">
       {/* Hero Section */}
-      <motion.section 
+      <motion.section
         style={{ opacity, scale }}
         className="relative min-h-screen flex items-center justify-center overflow-hidden"
       >
         {/* Background Gradient */}
         <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-white to-purple-50" />
-        
+
         {/* Animated Background Elements */}
         <div className="absolute inset-0 overflow-hidden">
           {[...Array(20)].map((_, i) => (
@@ -128,7 +134,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStartMeeting }) => {
         </div>
 
         <div className="relative z-10 text-center max-w-6xl mx-auto px-6">
-          <motion.h1 
+          <motion.h1
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
@@ -140,25 +146,25 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStartMeeting }) => {
               AI Meetings
             </span>
           </motion.h1>
-          
-          <motion.p 
+
+          <motion.p
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.2 }}
             className="text-xl md:text-2xl text-gray-600 mb-12 font-light leading-relaxed max-w-3xl mx-auto"
           >
-            Transform your meetings with AI-powered insights, real-time analysis, 
-            and intelligent automation. Experience the next generation of collaborative intelligence.
+            Transform your meetings with AI-powered insights, real-time analysis, and intelligent
+            automation. Experience the next generation of collaborative intelligence.
           </motion.p>
 
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.4 }}
             className="flex flex-col sm:flex-row gap-4 justify-center items-center"
           >
-            <Button 
-              size="lg" 
+            <Button
+              size="lg"
               onClick={onStartMeeting}
               className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 text-lg rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
             >
@@ -168,8 +174,8 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStartMeeting }) => {
             </Button>
             <Dialog open={showDemoDialog} onOpenChange={setShowDemoDialog}>
               <DialogTrigger asChild>
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   size="lg"
                   className="px-8 py-4 text-lg rounded-full border-2 hover:bg-gray-50 transition-all duration-300"
                 >
@@ -178,8 +184,8 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStartMeeting }) => {
                 </Button>
               </DialogTrigger>
               <DialogContent className="max-w-4xl w-full p-0 bg-transparent border-none">
-                <DemoVideo 
-                  title="AI Meeting Assistant Demo" 
+                <DemoVideo
+                  title="AI Meeting Assistant Demo"
                   thumbnail="/images/meetingsdk-web-client-view.gif"
                 />
               </DialogContent>
@@ -187,7 +193,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStartMeeting }) => {
           </motion.div>
 
           {/* Stats */}
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.6 }}
@@ -198,9 +204,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStartMeeting }) => {
                 <div className="text-3xl md:text-4xl font-light text-gray-900 mb-2">
                   {stat.number}
                 </div>
-                <div className="text-sm text-gray-600 font-medium">
-                  {stat.label}
-                </div>
+                <div className="text-sm text-gray-600 font-medium">{stat.label}</div>
               </div>
             ))}
           </motion.div>
@@ -221,7 +225,8 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStartMeeting }) => {
               Intelligent Features
             </h2>
             <p className="text-xl text-gray-600 font-light max-w-3xl mx-auto">
-              Every feature designed to enhance your meeting experience with the power of artificial intelligence.
+              Every feature designed to enhance your meeting experience with the power of artificial
+              intelligence.
             </p>
           </motion.div>
 
@@ -236,28 +241,28 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStartMeeting }) => {
                   transition={{ duration: 0.6, delay: index * 0.1 }}
                   viewport={{ once: true }}
                   className={`p-6 rounded-2xl cursor-pointer transition-all duration-300 ${
-                    currentFeature === index 
-                      ? 'bg-white shadow-xl border-l-4 border-blue-600' 
-                      : 'bg-white/50 hover:bg-white hover:shadow-lg'
+                    currentFeature === index
+                      ? "bg-white shadow-xl border-l-4 border-blue-600"
+                      : "bg-white/50 hover:bg-white hover:shadow-lg"
                   }`}
                   onClick={() => setCurrentFeature(index)}
                 >
                   <div className="flex items-start gap-4">
-                    <div className={`p-3 rounded-xl ${
-                      currentFeature === index ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-600'
-                    }`}>
+                    <div
+                      className={`p-3 rounded-xl ${
+                        currentFeature === index
+                          ? "bg-blue-100 text-blue-600"
+                          : "bg-gray-100 text-gray-600"
+                      }`}
+                    >
                       {feature.icon}
                     </div>
                     <div className="flex-1">
-                      <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                        {feature.title}
-                      </h3>
-                      <p className="text-gray-600 mb-3 font-light">
-                        {feature.description}
-                      </p>
+                      <h3 className="text-xl font-semibold text-gray-900 mb-2">{feature.title}</h3>
+                      <p className="text-gray-600 mb-3 font-light">{feature.description}</p>
                       <div className="flex flex-wrap gap-2">
                         {feature.details.map((detail, i) => (
-                          <span 
+                          <span
                             key={i}
                             className="text-xs px-3 py-1 bg-gray-100 text-gray-600 rounded-full"
                           >
@@ -282,9 +287,9 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStartMeeting }) => {
               >
                 <div className="bg-white rounded-3xl shadow-2xl overflow-hidden">
                   <div className="bg-gray-900 px-6 py-4 flex items-center gap-2">
-                    <div className="w-3 h-3 bg-red-500 rounded-full"></div>
-                    <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
-                    <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                    <div className="w-3 h-3 bg-red-500 rounded-full" />
+                    <div className="w-3 h-3 bg-yellow-500 rounded-full" />
+                    <div className="w-3 h-3 bg-green-500 rounded-full" />
                     <div className="flex-1 text-center">
                       <span className="text-gray-300 text-sm font-medium">
                         {features[currentFeature].title}
@@ -292,14 +297,14 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStartMeeting }) => {
                     </div>
                   </div>
                   <div className="aspect-video bg-gradient-to-br from-blue-50 to-purple-50 flex items-center justify-center">
-                    <img 
+                    <img
                       src={features[currentFeature].image}
                       alt={features[currentFeature].title}
                       className="max-w-full max-h-full object-contain rounded-lg"
                     />
                   </div>
                 </div>
-                
+
                 {/* Floating AI Badge */}
                 <div className="absolute -top-4 -right-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 py-2 rounded-full shadow-lg">
                   <div className="flex items-center gap-2">
@@ -327,7 +332,8 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStartMeeting }) => {
               Built with Excellence
             </h2>
             <p className="text-xl text-gray-600 font-light max-w-3xl mx-auto">
-              Powered by cutting-edge AI models and modern web technologies for unparalleled performance.
+              Powered by cutting-edge AI models and modern web technologies for unparalleled
+              performance.
             </p>
           </motion.div>
 
@@ -336,21 +342,24 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStartMeeting }) => {
               {
                 icon: <Brain className="w-12 h-12" />,
                 title: "Advanced AI Models",
-                description: "Google Gemini 2.0 Flash for lightning-fast analysis and OpenRouter integration for diverse AI capabilities.",
-                features: ["Real-time Processing", "Multi-modal Analysis", "Context Understanding"]
+                description:
+                  "Google Gemini 2.0 Flash for lightning-fast analysis and OpenRouter integration for diverse AI capabilities.",
+                features: ["Real-time Processing", "Multi-modal Analysis", "Context Understanding"],
               },
               {
                 icon: <Zap className="w-12 h-12" />,
                 title: "Modern Architecture",
-                description: "Built with React, TypeScript, and Vite for optimal performance and developer experience.",
-                features: ["Type Safety", "Hot Reloading", "Optimized Builds"]
+                description:
+                  "Built with React, TypeScript, and Vite for optimal performance and developer experience.",
+                features: ["Type Safety", "Hot Reloading", "Optimized Builds"],
               },
               {
                 icon: <Shield className="w-12 h-12" />,
                 title: "Enterprise Security",
-                description: "JWT authentication, secure API endpoints, and privacy-first design principles.",
-                features: ["End-to-end Encryption", "Secure Authentication", "Privacy Compliant"]
-              }
+                description:
+                  "JWT authentication, secure API endpoints, and privacy-first design principles.",
+                features: ["End-to-end Encryption", "Secure Authentication", "Privacy Compliant"],
+              },
             ].map((tech, index) => (
               <motion.div
                 key={index}
@@ -360,15 +369,9 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStartMeeting }) => {
                 viewport={{ once: true }}
                 className="bg-gray-50 p-8 rounded-3xl hover:bg-white hover:shadow-xl transition-all duration-300"
               >
-                <div className="text-blue-600 mb-6">
-                  {tech.icon}
-                </div>
-                <h3 className="text-2xl font-semibold text-gray-900 mb-4">
-                  {tech.title}
-                </h3>
-                <p className="text-gray-600 mb-6 font-light leading-relaxed">
-                  {tech.description}
-                </p>
+                <div className="text-blue-600 mb-6">{tech.icon}</div>
+                <h3 className="text-2xl font-semibold text-gray-900 mb-4">{tech.title}</h3>
+                <p className="text-gray-600 mb-6 font-light leading-relaxed">{tech.description}</p>
                 <div className="space-y-2">
                   {tech.features.map((feature, i) => (
                     <div key={i} className="flex items-center gap-2">
@@ -394,16 +397,17 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStartMeeting }) => {
           >
             <h2 className="text-5xl md:text-6xl font-thin text-white mb-6">
               Ready to Transform
-              <br />Your Meetings?
+              <br />
+              Your Meetings?
             </h2>
             <p className="text-xl text-blue-100 mb-12 font-light max-w-2xl mx-auto">
-              Join thousands of teams already using AI to make their meetings more productive, 
+              Join thousands of teams already using AI to make their meetings more productive,
               insightful, and actionable.
             </p>
-            
+
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-              <Button 
-                size="lg" 
+              <Button
+                size="lg"
                 onClick={onStartMeeting}
                 className="bg-white text-blue-600 hover:bg-gray-100 px-8 py-4 text-lg rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
               >
@@ -411,8 +415,8 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStartMeeting }) => {
                 Start Free Trial
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 size="lg"
                 className="border-2 border-white text-white hover:bg-white hover:text-blue-600 px-8 py-4 text-lg rounded-full transition-all duration-300"
               >

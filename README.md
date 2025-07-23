@@ -1,16 +1,38 @@
-# AI-Powered Meeting Assistant
+# AI Meeting Copilot
 
-Use of this sample app is subject to our [Terms of Use](https://explore.zoom.us/en/legal/zoom-api-license-and-tou/).
+An intelligent AI-powered meeting assistant that enhances your Zoom meetings with real-time transcription, screenshot analysis, document processing, and post-meeting follow-up capabilities.
 
-This is a cutting-edge [React](https://reactjs.org/) application built with [Vite](https://vitejs.dev/) that showcases the power of AI in meetings. It features a **beautiful Apple-inspired landing page** and uses the [Zoom Meeting SDK](https://developers.zoom.us/docs/meeting-sdk/web/) combined with advanced AI capabilities to revolutionize meeting experiences.
+![AI Meeting Copilot Interface](https://via.placeholder.com/800x400/4F46E5/FFFFFF?text=AI+Meeting+Copilot)
 
-## ✨ Features
+## Features
 
-### 🎨 Beautiful Landing Page
-- **Apple-inspired design** with smooth animations and elegant typography
-- **Interactive feature showcase** with live demos
-- **Responsive design** that works on all devices
-- **Modern UI components** with Tailwind CSS and Framer Motion
+🤖 **AI-Powered Meeting Preparation**
+- Intelligent meeting setup with AI assistant
+- Document upload and processing with RAG pipeline
+- Todo extraction and management
+- Meeting context analysis
+
+📝 **Real-Time Transcription**
+- Live meeting transcription via WebSocket
+- Automatic transcript processing and analysis
+- Context-aware AI responses
+
+📸 **Smart Screenshot Analysis**
+- One-click screenshot capture during meetings
+- OCR text extraction using OpenRouter/Gemini Vision
+- Automatic content analysis and markdown formatting
+
+📊 **Post-Meeting Intelligence**
+- Comprehensive meeting summaries
+- Action item extraction
+- Follow-up task generation
+- Meeting analytics and insights
+
+🔧 **Advanced Integration**
+- Zoom Meeting SDK integration
+- OpenRouter LLM integration
+- LangChain RAG pipeline
+- Real-time media streaming (RTMS)
 
 ### 🤖 AI-Powered Meeting Features
 - **AI Meeting Copilot** - Your intelligent meeting companion
@@ -24,62 +46,167 @@ This is a cutting-edge [React](https://reactjs.org/) application built with [Vit
 
 ## 🚀 Installation
 
-To get started, clone the repo:
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/shixin-guo/meeting-copliot.git
+   cd meeting-copliot
+   ```
 
-```bash
-git clone https://github.com/zoom/meetingsdk-react-sample.git
-cd meetingsdk-react-sample
-```
-
-## ⚙️ Setup
-
-1. Install dependencies:
+2. Install frontend dependencies:
    ```bash
    npm install
    ```
 
-2. Create a `.env` file in the root directory with your API keys:
-   ```env
-   VITE_ZOOM_MEETING_SDK_KEY=your_zoom_sdk_key
-   VITE_ZOOM_MEETING_SDK_SECRET=your_zoom_sdk_secret
-   VITE_OPENROUTER_API_KEY=your_openrouter_api_key
+3. Install backend dependencies:
+   ```bash
+   cd server
+   npm install
+   cd ..
    ```
 
-3. Configure your Zoom Meeting SDK credentials in the environment variables.
+## Configuration
 
-4. Start the development server:
+### Frontend Environment Variables
+
+Create a `.env` file in the root directory:
+
+```env
+VITE_ZOOM_MEETING_SDK_KEY=your_zoom_meeting_sdk_key
+VITE_ZOOM_MEETING_SDK_SECRET=your_zoom_meeting_sdk_secret
+VITE_OPENROUTER_API_KEY=your_openrouter_api_key
+```
+
+### Backend Environment Variables
+
+Create a `.env` file in the `server` directory:
+
+```env
+PORT=3000
+ZOOM_SECRET_TOKEN=your_zoom_secret_token
+ZM_CLIENT_ID=your_zoom_client_id
+ZM_CLIENT_SECRET=your_zoom_client_secret
+WEBHOOK_PATH=/webhook
+OPENROUTER_API_KEY=your_openrouter_api_key
+```
+
+### Required API Keys
+
+| Service | Purpose | How to Get |
+|---------|---------|------------|
+| Zoom Meeting SDK | Meeting integration | [Zoom Marketplace](https://marketplace.zoom.us/) |
+| OpenRouter | AI/LLM services | [OpenRouter](https://openrouter.ai/) |
+| Zoom RTMS | Real-time media streaming | [Zoom Developer Portal](https://developers.zoom.us/) |
+
+## 🎯 Usage
+
+### Development Mode
+
+1. Start the backend server:
+   ```bash
+   cd server
+   npm start
+   ```
+
+2. In a new terminal, start the frontend:
    ```bash
    npm run dev
    ```
 
-## 🎯 Usage
+3. Open your browser and navigate to `http://localhost:5173`
 
-1. **Landing Page**: Navigate to http://localhost:5173 to see the beautiful landing page
-2. **Start Meeting**: Click "Start AI Meeting" or "Launch Meeting App" to access the meeting interface
-3. **AI Features**: Use the AI copilot to enhance your meeting experience with:
-   - Smart screenshot capture and analysis
-   - Real-time transcription and insights
-   - Automated follow-up generation
-   - Document analysis and recommendations
+### Using the AI Meeting Copilot
 
-### Meeting SDK Configuration
+1. **Meeting Preparation**
+   - Click "AI Copilot Meeting Prep" to open the preparation dialog
+   - Upload relevant documents for context
+   - Set meeting objectives and preferences
+   - Paste your Zoom meeting link
 
-| Variable | Description |
-|----------|-------------|
-| `VITE_ZOOM_MEETING_SDK_KEY` | Your Zoom Meeting SDK key |
-| `VITE_ZOOM_MEETING_SDK_SECRET` | Your Zoom Meeting SDK secret |
-| `VITE_OPENROUTER_API_KEY` | OpenRouter API key for AI features |
+2. **During the Meeting**
+   - Take screenshots for later analysis
+   - Monitor live transcription
+   - Create and manage todos
+   - Ask AI questions about meeting content
 
-## 🛠️ Technology Stack
+3. **Post-Meeting**
+   - Review generated meeting summary
+   - Export action items and follow-ups
+   - Access OCR results from screenshots
+   - Generate meeting reports
 
-- **Frontend**: React 18 + TypeScript + Vite
-- **Styling**: Tailwind CSS + Custom Apple-inspired design
-- **Animations**: Framer Motion for smooth interactions
-- **AI Integration**: Google Gemini 2.0 Flash via OpenRouter
+## Architecture
+
+### Frontend (React + TypeScript)
+- **Framework**: React 18 with Vite
+- **UI Components**: Radix UI + Tailwind CSS
 - **Meeting SDK**: Zoom Meeting SDK for web
-- **UI Components**: Radix UI + Custom components
+- **State Management**: React hooks
+- **Real-time Communication**: WebSocket for live transcription
 
-## 🎨 Design Philosophy
+### Backend (Node.js + Express)
+- **Server**: Express.js with WebSocket support
+- **AI Integration**: OpenRouter for LLM services
+- **Document Processing**: LangChain RAG pipeline
+- **Media Processing**: Zoom RTMS for real-time streams
+- **File Support**: PDF, DOCX, TXT, MD document loaders
+
+### Key Components
+
+```
+├── src/
+│   ├── App.tsx                 # Main application component
+│   ├── components/
+│   │   ├── ui/                 # Reusable UI components
+│   │   ├── PostMeetingFollowUp.tsx
+│   │   └── animate-ui/         # Animated UI elements
+│   └── lib/
+│       └── utils.ts            # Utility functions
+├── server/
+│   ├── index.js                # Main server & RTMS handler
+│   ├── ragPipeline.js          # RAG logic & document processing
+│   ├── chatWithOpenrouter.js   # LLM integration
+│   └── loaders/                # Document loaders
+└── public/                     # Static assets
+```
+
+## API Endpoints
+
+The backend server provides several API endpoints:
+
+### Meeting & Transcription
+- `POST /webhook` - Zoom RTMS webhook handler
+- `WebSocket /ws` - Real-time transcript streaming
+
+### AI & Analysis
+- `POST /api/ask-kb` - Query knowledge base with meeting context
+- `POST /api/llm-direct` - Direct LLM chat interface
+- `POST /api/extract-todos` - Extract todos from text using AI
+
+### Media & Screenshots
+- `GET /api/latest-image` - Get the most recent screenshot
+- Static files served from `/recordings` directory
+
+## Development
+
+### Code Style
+- **Linting**: Biome for code formatting and linting
+- **Git Hooks**: Lefthook for pre-commit checks
+- **TypeScript**: Strict type checking enabled
+
+### Available Scripts
+
+```bash
+# Frontend
+npm run dev          # Start development server
+npm run build        # Build for production
+npm run lint         # Run linter
+npm run format       # Format code
+npm run preview      # Preview production build
+
+# Backend
+cd server
+npm start            # Start backend server
+```
 
 The landing page follows Apple's design principles:
 - **Simplicity**: Clean, uncluttered interface
@@ -87,43 +214,90 @@ The landing page follows Apple's design principles:
 - **Functionality**: Every element serves a purpose
 - **Delight**: Smooth animations and interactions
 
-## 📱 Responsive Design
+### Production Build
 
-The application is fully responsive and optimized for:
-- **Desktop**: Full-featured experience with all animations
-- **Tablet**: Adapted layout with touch-friendly interactions
-- **Mobile**: Streamlined interface optimized for small screens
+1. Build the frontend:
+   ```bash
+   npm run build
+   ```
 
-## 🚀 Deployment
+2. Configure environment variables for production
 
-### GitHub Pages
+3. Deploy both frontend (`dist/`) and backend (`server/`) to your hosting platform
 
-1. Configure the `vite.config.ts` with your repository name
-2. Build the project: `npm run build`
-3. Deploy to GitHub Pages using the `/docs` folder
+### Docker Deployment (Optional)
 
-### Other Platforms
+Create a `Dockerfile` for containerized deployment:
 
-The built application can be deployed to any static hosting service:
-- Vercel
-- Netlify
-- AWS S3
-- Azure Static Web Apps
+```dockerfile
+FROM node:18-alpine
+WORKDIR /app
+COPY package*.json ./
+RUN npm install
+COPY . .
+RUN npm run build
+EXPOSE 3000 5173
+CMD ["npm", "start"]
+```
 
-## 🤝 Contributing
+## Contributing
 
-We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+1. Fork the repository
+2. Create a feature branch: `git checkout -b feature/amazing-feature`
+3. Commit your changes: `git commit -m 'Add amazing feature'`
+4. Push to the branch: `git push origin feature/amazing-feature`
+5. Open a Pull Request
 
-## 📄 License
+## Troubleshooting
 
-This project is licensed under the terms specified in [LICENSE.md](LICENSE.md).
+### Common Issues
 
-## 🆘 Need Help?
+**Meeting SDK not loading**
+- Verify your Zoom Meeting SDK credentials
+- Check that environment variables are properly set
+- Ensure you're using HTTPS in production
 
-- [Developer Support](https://devsupport.zoom.us)
-- [Developer Forum](https://devforum.zoom.us)
-- [Premier Developer Support](https://explore.zoom.us/docs/en-us/developer-support-plans.html)
+**Transcription not working**
+- Check WebSocket connection to backend
+- Verify Zoom RTMS configuration
+- Ensure webhook URL is accessible
+
+**AI features not responding**
+- Verify OpenRouter API key is valid
+- Check network connectivity
+- Review server logs for errors
+
+**Screenshot OCR failing**
+- Ensure OpenRouter API has vision model access
+- Check image format and size limits
+- Verify API rate limits
+
+### Debug Mode
+
+Enable debug logging by setting:
+```env
+DEBUG=true
+LOG_LEVEL=debug
+```
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details.
+
+## Acknowledgments
+
+- [Zoom Meeting SDK](https://developers.zoom.us/docs/meeting-sdk/) for meeting integration
+- [OpenRouter](https://openrouter.ai/) for AI/LLM services
+- [LangChain](https://langchain.com/) for RAG pipeline
+- [Radix UI](https://radix-ui.com/) for accessible UI components
+
+## Support
+
+For support and questions:
+- Create an issue in this repository
+- Check the [documentation](https://github.com/shixin-guo/meeting-copliot/wiki)
+- Review existing issues and discussions
 
 ---
 
-**Built with ❤️ and cutting-edge AI technology**
+**Built with ❤️ for better meetings**

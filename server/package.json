@@ -1,6 +1,8 @@
 {
-  "name": "rtms-sample",
+  "name": "ai-meeting-copilot-server",
   "version": "1.0.0",
+  "description": "Backend server for AI Meeting Copilot with Zoom RTMS integration, RAG pipeline, and AI analysis",
+  "author": "Shixin Guo",
   "type": "module",
   "dependencies": {
     "@langchain/core": "^0.3.57",

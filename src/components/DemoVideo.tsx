@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
-import { motion } from 'motion/react';
-import { Play, Pause, Volume2, Maximize } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import type React from "react";
+import { useState } from "react";
+import { motion } from "motion/react";
+import { Play, Pause, Volume2, Maximize } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 interface DemoVideoProps {
   title: string;
@@ -26,11 +27,7 @@ const DemoVideo: React.FC<DemoVideoProps> = ({ title, thumbnail, className = "" 
         {/* Thumbnail/Background */}
         <div className="absolute inset-0 bg-gradient-to-br from-blue-600/20 to-purple-600/20">
           {thumbnail ? (
-            <img 
-              src={thumbnail} 
-              alt={title}
-              className="w-full h-full object-cover"
-            />
+            <img src={thumbnail} alt={title} className="w-full h-full object-cover" />
           ) : (
             <div className="w-full h-full flex items-center justify-center">
               <div className="text-white/60 text-center">
@@ -73,7 +70,7 @@ const DemoVideo: React.FC<DemoVideoProps> = ({ title, thumbnail, className = "" 
             >
               {isPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
             </Button>
-            
+
             {/* Progress Bar */}
             <div className="flex-1 h-1 bg-white/30 rounded-full overflow-hidden">
               <motion.div
@@ -84,19 +81,11 @@ const DemoVideo: React.FC<DemoVideoProps> = ({ title, thumbnail, className = "" 
               />
             </div>
 
-            <Button
-              size="sm"
-              variant="ghost"
-              className="text-white hover:bg-white/20"
-            >
+            <Button size="sm" variant="ghost" className="text-white hover:bg-white/20">
               <Volume2 className="w-4 h-4" />
             </Button>
 
-            <Button
-              size="sm"
-              variant="ghost"
-              className="text-white hover:bg-white/20"
-            >
+            <Button size="sm" variant="ghost" className="text-white hover:bg-white/20">
               <Maximize className="w-4 h-4" />
             </Button>
           </div>
@@ -119,9 +108,9 @@ const DemoVideo: React.FC<DemoVideoProps> = ({ title, thumbnail, className = "" 
 
       {/* Title Bar */}
       <div className="bg-gray-900 px-4 py-3 flex items-center gap-2">
-        <div className="w-3 h-3 bg-red-500 rounded-full"></div>
-        <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
-        <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+        <div className="w-3 h-3 bg-red-500 rounded-full" />
+        <div className="w-3 h-3 bg-yellow-500 rounded-full" />
+        <div className="w-3 h-3 bg-green-500 rounded-full" />
         <div className="flex-1 text-center">
           <span className="text-gray-300 text-sm font-medium">{title}</span>
         </div>

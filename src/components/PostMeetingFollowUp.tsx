@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from "react";
+import type React from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -6,20 +7,25 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { 
-  Mail, 
-  Send, 
-  FileText, 
-  Download, 
-  Upload, 
-  ChevronDown, 
-  ChevronUp, 
-  Sparkles, 
-  Users, 
+import {
+  Mail,
+  Send,
+  FileText,
+  Download,
+  Upload,
+  ChevronDown,
+  ChevronUp,
+  Sparkles,
+  Users,
   Calendar,
   CheckCircle,
   AlertCircle,
@@ -29,7 +35,7 @@ import {
   Brain,
   Plus,
   Trash2,
-  Edit3
+  Edit3,
 } from "lucide-react";
 
 interface MeetingData {
@@ -49,13 +55,13 @@ interface MeetingData {
 
 interface FollowUpAction {
   id: string;
-  type: 'email' | 'task' | 'document' | 'meeting';
+  type: "email" | "task" | "document" | "meeting";
   title: string;
   description: string;
   assignee: string;
   dueDate: Date;
-  status: 'pending' | 'in_progress' | 'completed';
-  priority: 'low' | 'medium' | 'high';
+  status: "pending" | "in_progress" | "completed";
+  priority: "low" | "medium" | "high";
 }
 
 interface PostMeetingFollowUpProps {
@@ -63,21 +69,18 @@ interface PostMeetingFollowUpProps {
   onClose?: () => void;
 }
 
-const PostMeetingFollowUp: React.FC<PostMeetingFollowUpProps> = ({ 
-  meetingData, 
-  onClose 
-}) => {
+const PostMeetingFollowUp: React.FC<PostMeetingFollowUpProps> = ({ meetingData, onClose }) => {
   const [emailContent, setEmailContent] = useState("");
   const [emailSubject, setEmailSubject] = useState("");
   const [emailRecipients, setEmailRecipients] = useState<string[]>([]);
   const [recipientInput, setRecipientInput] = useState("");
-  
+
   const [followUpActions, setFollowUpActions] = useState<FollowUpAction[]>([]);
   const [newAction, setNewAction] = useState<Partial<FollowUpAction>>({});
-  
+
   const [isSyncing, setIsSyncing] = useState(false);
-  const [syncStatus, setSyncStatus] = useState<Record<string, 'success' | 'error' | 'pending'>>({});
-  
+  const [syncStatus, setSyncStatus] = useState<Record<string, "success" | "error" | "pending">>({});
+
   const [isGeneratingEmail, setIsGeneratingEmail] = useState(false);
   const [isGeneratingSummary, setIsGeneratingSummary] = useState(false);
   const [meetingSummary, setMeetingSummary] = useState(meetingData.summary || "");
@@ -85,7 +88,7 @@ const PostMeetingFollowUp: React.FC<PostMeetingFollowUpProps> = ({
   const [expandedSections, setExpandedSections] = useState({
     transcripts: false,
     screenshots: false,
-    summary: true
+    summary: true,
   });
 
   useEffect(() => {
@@ -168,7 +171,10 @@ Transcripts:
 ${meetingData.transcripts.join("\n")}
 
 OCR Results from Screenshots:
-${meetingData.screenshots.map(s => s.ocrResult).filter(Boolean).join("\n")}
+${meetingData.screenshots
+  .map((s) => s.ocrResult)
+  .filter(Boolean)
+  .join("\n")}
 
 Please provide:
 1. Meeting Overview
@@ -213,33 +219,33 @@ Format as markdown with clear sections.`;
 
   const sendEmail = async () => {
     try {
-      setSyncStatus(prev => ({ ...prev, email: 'pending' }));
-      
+      setSyncStatus((prev) => ({ ...prev, email: "pending" }));
+
       // Simulate email sending - replace with actual email service integration
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+
       // Here you would integrate with your email service (SendGrid, etc.)
       console.log("Sending email:", {
         to: emailRecipients,
         subject: emailSubject,
-        content: emailContent
+        content: emailContent,
       });
-      
-      setSyncStatus(prev => ({ ...prev, email: 'success' }));
+
+      setSyncStatus((prev) => ({ ...prev, email: "success" }));
     } catch (error) {
       console.error("Error sending email:", error);
-      setSyncStatus(prev => ({ ...prev, email: 'error' }));
+      setSyncStatus((prev) => ({ ...prev, email: "error" }));
     }
   };
 
   const syncToSalesforce = async () => {
     try {
-      setSyncStatus(prev => ({ ...prev, salesforce: 'pending' }));
+      setSyncStatus((prev) => ({ ...prev, salesforce: "pending" }));
       setIsSyncing(true);
-      
+
       // Simulate Salesforce sync - replace with actual Salesforce API integration
-      await new Promise(resolve => setTimeout(resolve, 3000));
-      
+      await new Promise((resolve) => setTimeout(resolve, 3000));
+
       const salesforceData = {
         meetingTitle: meetingData.title,
         meetingDate: meetingData.date,
@@ -247,18 +253,18 @@ Format as markdown with clear sections.`;
         summary: meetingSummary,
         transcripts: meetingData.transcripts,
         followUpActions: followUpActions,
-        attachments: meetingData.screenshots.map(s => ({
+        attachments: meetingData.screenshots.map((s) => ({
           name: `Screenshot_${s.timestamp.toISOString()}`,
-          content: s.ocrResult
-        }))
+          content: s.ocrResult,
+        })),
       };
-      
+
       console.log("Syncing to Salesforce:", salesforceData);
-      
-      setSyncStatus(prev => ({ ...prev, salesforce: 'success' }));
+
+      setSyncStatus((prev) => ({ ...prev, salesforce: "success" }));
     } catch (error) {
       console.error("Error syncing to Salesforce:", error);
-      setSyncStatus(prev => ({ ...prev, salesforce: 'error' }));
+      setSyncStatus((prev) => ({ ...prev, salesforce: "error" }));
     } finally {
       setIsSyncing(false);
     }
@@ -266,24 +272,24 @@ Format as markdown with clear sections.`;
 
   const syncToDocuments = async () => {
     try {
-      setSyncStatus(prev => ({ ...prev, documents: 'pending' }));
-      
+      setSyncStatus((prev) => ({ ...prev, documents: "pending" }));
+
       // Simulate document sync - replace with actual document service integration
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+
       const documentData = {
         title: `${meetingData.title} - Meeting Notes`,
         content: meetingSummary,
         transcripts: meetingData.transcripts,
-        screenshots: meetingData.screenshots
+        screenshots: meetingData.screenshots,
       };
-      
+
       console.log("Syncing to Documents:", documentData);
-      
-      setSyncStatus(prev => ({ ...prev, documents: 'success' }));
+
+      setSyncStatus((prev) => ({ ...prev, documents: "success" }));
     } catch (error) {
       console.error("Error syncing to documents:", error);
-      setSyncStatus(prev => ({ ...prev, documents: 'error' }));
+      setSyncStatus((prev) => ({ ...prev, documents: "error" }));
     }
   };
 
@@ -295,53 +301,59 @@ Format as markdown with clear sections.`;
   };
 
   const removeRecipient = (email: string) => {
-    setEmailRecipients(emailRecipients.filter(r => r !== email));
+    setEmailRecipients(emailRecipients.filter((r) => r !== email));
   };
 
   const addFollowUpAction = () => {
     if (newAction.title && newAction.description) {
       const action: FollowUpAction = {
         id: Date.now().toString(),
-        type: newAction.type || 'task',
+        type: newAction.type || "task",
         title: newAction.title,
         description: newAction.description,
-        assignee: newAction.assignee || '',
+        assignee: newAction.assignee || "",
         dueDate: newAction.dueDate || new Date(),
-        status: 'pending',
-        priority: newAction.priority || 'medium'
+        status: "pending",
+        priority: newAction.priority || "medium",
       };
       setFollowUpActions([...followUpActions, action]);
       setNewAction({});
     }
   };
 
-  const updateActionStatus = (id: string, status: FollowUpAction['status']) => {
-    setFollowUpActions(actions => 
-      actions.map(action => 
-        action.id === id ? { ...action, status } : action
-      )
+  const updateActionStatus = (id: string, status: FollowUpAction["status"]) => {
+    setFollowUpActions((actions) =>
+      actions.map((action) => (action.id === id ? { ...action, status } : action)),
     );
   };
 
   const deleteAction = (id: string) => {
-    setFollowUpActions(actions => actions.filter(action => action.id !== id));
+    setFollowUpActions((actions) => actions.filter((action) => action.id !== id));
   };
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'success': return <CheckCircle className="w-4 h-4 text-green-500" />;
-      case 'error': return <AlertCircle className="w-4 h-4 text-red-500" />;
-      case 'pending': return <Clock className="w-4 h-4 text-yellow-500" />;
-      default: return null;
+      case "success":
+        return <CheckCircle className="w-4 h-4 text-green-500" />;
+      case "error":
+        return <AlertCircle className="w-4 h-4 text-red-500" />;
+      case "pending":
+        return <Clock className="w-4 h-4 text-yellow-500" />;
+      default:
+        return null;
     }
   };
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
-      case 'high': return 'destructive';
-      case 'medium': return 'default';
-      case 'low': return 'secondary';
-      default: return 'default';
+      case "high":
+        return "destructive";
+      case "medium":
+        return "default";
+      case "low":
+        return "secondary";
+      default:
+        return "default";
     }
   };
 
@@ -378,7 +390,7 @@ Format as markdown with clear sections.`;
                   <Brain className="w-5 h-5" />
                   AI-Generated Meeting Summary
                 </CardTitle>
-                <Button 
+                <Button
                   onClick={generateMeetingSummary}
                   disabled={isGeneratingSummary}
                   variant="outline"
@@ -403,7 +415,9 @@ Format as markdown with clear sections.`;
               <CardHeader>
                 <Collapsible
                   open={expandedSections.transcripts}
-                  onOpenChange={(open) => setExpandedSections(prev => ({ ...prev, transcripts: open }))}
+                  onOpenChange={(open) =>
+                    setExpandedSections((prev) => ({ ...prev, transcripts: open }))
+                  }
                 >
                   <CollapsibleTrigger asChild>
                     <div className="flex items-center justify-between cursor-pointer">
@@ -431,7 +445,9 @@ Format as markdown with clear sections.`;
               <CardHeader>
                 <Collapsible
                   open={expandedSections.screenshots}
-                  onOpenChange={(open) => setExpandedSections(prev => ({ ...prev, screenshots: open }))}
+                  onOpenChange={(open) =>
+                    setExpandedSections((prev) => ({ ...prev, screenshots: open }))
+                  }
                 >
                   <CollapsibleTrigger asChild>
                     <div className="flex items-center justify-between cursor-pointer">
@@ -449,9 +465,9 @@ Format as markdown with clear sections.`;
                           <div className="text-xs text-muted-foreground mb-2">
                             {screenshot.timestamp.toLocaleString()}
                           </div>
-                          <img 
-                            src={screenshot.dataUrl} 
-                            alt="Screenshot" 
+                          <img
+                            src={screenshot.dataUrl}
+                            alt="Screenshot"
                             className="w-full h-20 object-cover rounded mb-2"
                           />
                           {screenshot.ocrResult && (
@@ -496,7 +512,7 @@ Format as markdown with clear sections.`;
                       value={recipientInput}
                       onChange={(e) => setRecipientInput(e.target.value)}
                       placeholder="Add recipient email"
-                      onKeyPress={(e) => e.key === 'Enter' && addRecipient()}
+                      onKeyPress={(e) => e.key === "Enter" && addRecipient()}
                     />
                     <Button onClick={addRecipient} variant="outline">
                       <Plus className="w-4 h-4" />
@@ -517,7 +533,7 @@ Format as markdown with clear sections.`;
               </div>
 
               <div className="flex gap-2">
-                <Button 
+                <Button
                   onClick={generateEmailContent}
                   disabled={isGeneratingEmail}
                   variant="outline"
@@ -561,9 +577,11 @@ Format as markdown with clear sections.`;
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 p-4 border rounded">
                 <div>
                   <Label htmlFor="action-type">Type</Label>
-                  <Select 
-                    value={newAction.type} 
-                    onValueChange={(value) => setNewAction(prev => ({ ...prev, type: value as any }))}
+                  <Select
+                    value={newAction.type}
+                    onValueChange={(value) =>
+                      setNewAction((prev) => ({ ...prev, type: value as any }))
+                    }
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Select type" />
@@ -580,8 +598,8 @@ Format as markdown with clear sections.`;
                   <Label htmlFor="action-title">Title</Label>
                   <Input
                     id="action-title"
-                    value={newAction.title || ''}
-                    onChange={(e) => setNewAction(prev => ({ ...prev, title: e.target.value }))}
+                    value={newAction.title || ""}
+                    onChange={(e) => setNewAction((prev) => ({ ...prev, title: e.target.value }))}
                     placeholder="Action title"
                   />
                 </div>
@@ -589,16 +607,20 @@ Format as markdown with clear sections.`;
                   <Label htmlFor="action-assignee">Assignee</Label>
                   <Input
                     id="action-assignee"
-                    value={newAction.assignee || ''}
-                    onChange={(e) => setNewAction(prev => ({ ...prev, assignee: e.target.value }))}
+                    value={newAction.assignee || ""}
+                    onChange={(e) =>
+                      setNewAction((prev) => ({ ...prev, assignee: e.target.value }))
+                    }
                     placeholder="Assignee email"
                   />
                 </div>
                 <div>
                   <Label htmlFor="action-priority">Priority</Label>
-                  <Select 
-                    value={newAction.priority} 
-                    onValueChange={(value) => setNewAction(prev => ({ ...prev, priority: value as any }))}
+                  <Select
+                    value={newAction.priority}
+                    onValueChange={(value) =>
+                      setNewAction((prev) => ({ ...prev, priority: value as any }))
+                    }
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Priority" />
@@ -614,8 +636,10 @@ Format as markdown with clear sections.`;
                   <Label htmlFor="action-description">Description</Label>
                   <Textarea
                     id="action-description"
-                    value={newAction.description || ''}
-                    onChange={(e) => setNewAction(prev => ({ ...prev, description: e.target.value }))}
+                    value={newAction.description || ""}
+                    onChange={(e) =>
+                      setNewAction((prev) => ({ ...prev, description: e.target.value }))
+                    }
                     placeholder="Action description"
                     className="h-20"
                   />
@@ -625,8 +649,10 @@ Format as markdown with clear sections.`;
                   <Input
                     id="action-due"
                     type="date"
-                    value={newAction.dueDate?.toISOString().split('T')[0] || ''}
-                    onChange={(e) => setNewAction(prev => ({ ...prev, dueDate: new Date(e.target.value) }))}
+                    value={newAction.dueDate?.toISOString().split("T")[0] || ""}
+                    onChange={(e) =>
+                      setNewAction((prev) => ({ ...prev, dueDate: new Date(e.target.value) }))
+                    }
                   />
                 </div>
                 <div className="flex items-end">
@@ -639,7 +665,10 @@ Format as markdown with clear sections.`;
 
               <div className="space-y-2">
                 {followUpActions.map((action) => (
-                  <div key={action.id} className="flex items-center justify-between p-4 border rounded">
+                  <div
+                    key={action.id}
+                    className="flex items-center justify-between p-4 border rounded"
+                  >
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-2">
                         <Badge variant={getPriorityColor(action.priority) as any}>
@@ -654,8 +683,8 @@ Format as markdown with clear sections.`;
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
-                      <Select 
-                        value={action.status} 
+                      <Select
+                        value={action.status}
                         onValueChange={(value) => updateActionStatus(action.id, value as any)}
                       >
                         <SelectTrigger className="w-32">
@@ -667,11 +696,7 @@ Format as markdown with clear sections.`;
                           <SelectItem value="completed">Completed</SelectItem>
                         </SelectContent>
                       </Select>
-                      <Button 
-                        variant="outline" 
-                        size="icon"
-                        onClick={() => deleteAction(action.id)}
-                      >
+                      <Button variant="outline" size="icon" onClick={() => deleteAction(action.id)}>
                         <Trash2 className="w-4 h-4" />
                       </Button>
                     </div>
@@ -703,8 +728,8 @@ Format as markdown with clear sections.`;
                     <p className="text-sm text-muted-foreground mb-4">
                       Sync meeting data, participants, and follow-up actions to Salesforce CRM.
                     </p>
-                    <Button 
-                      onClick={syncToSalesforce} 
+                    <Button
+                      onClick={syncToSalesforce}
                       disabled={isSyncing}
                       className="w-full flex items-center gap-2"
                     >
@@ -726,10 +751,7 @@ Format as markdown with clear sections.`;
                     <p className="text-sm text-muted-foreground mb-4">
                       Export meeting summary, transcripts, and OCR results to document storage.
                     </p>
-                    <Button 
-                      onClick={syncToDocuments} 
-                      className="w-full flex items-center gap-2"
-                    >
+                    <Button onClick={syncToDocuments} className="w-full flex items-center gap-2">
                       <Upload className="w-4 h-4" />
                       Sync to Documents
                       {getStatusIcon(syncStatus.documents)}
@@ -748,10 +770,7 @@ Format as markdown with clear sections.`;
                     <p className="text-sm text-muted-foreground mb-4">
                       Create follow-up meetings and calendar events for action items.
                     </p>
-                    <Button 
-                      className="w-full flex items-center gap-2"
-                      variant="outline"
-                    >
+                    <Button className="w-full flex items-center gap-2" variant="outline">
                       <Calendar className="w-4 h-4" />
                       Schedule Follow-ups
                     </Button>
@@ -769,21 +788,21 @@ Format as markdown with clear sections.`;
                       <span>Email Service</span>
                       <div className="flex items-center gap-2">
                         {getStatusIcon(syncStatus.email)}
-                        <span className="text-sm">{syncStatus.email || 'Not synced'}</span>
+                        <span className="text-sm">{syncStatus.email || "Not synced"}</span>
                       </div>
                     </div>
                     <div className="flex items-center justify-between">
                       <span>Salesforce</span>
                       <div className="flex items-center gap-2">
                         {getStatusIcon(syncStatus.salesforce)}
-                        <span className="text-sm">{syncStatus.salesforce || 'Not synced'}</span>
+                        <span className="text-sm">{syncStatus.salesforce || "Not synced"}</span>
                       </div>
                     </div>
                     <div className="flex items-center justify-between">
                       <span>Documents</span>
                       <div className="flex items-center gap-2">
                         {getStatusIcon(syncStatus.documents)}
-                        <span className="text-sm">{syncStatus.documents || 'Not synced'}</span>
+                        <span className="text-sm">{syncStatus.documents || "Not synced"}</span>
                       </div>
                     </div>
                   </div>
@@ -824,7 +843,7 @@ Format as markdown with clear sections.`;
                     </Button>
                   </div>
                 </div>
-                
+
                 <div>
                   <h3 className="font-semibold mb-2">Quick Actions</h3>
                   <div className="space-y-2">

@@ -38,8 +38,6 @@ const BUTTON_MOTION_CONFIG = {
   transition: { type: "spring", stiffness: 250, damping: 25 },
 } as const;
 
-
-
 interface ManagementBarProps {
   onScreenshotTaken?: (screenshot: { id: string; dataUrl: string; timestamp: Date }) => void;
   todos: Array<{ id: string; content: string; completed: boolean }>;
@@ -91,8 +89,6 @@ function ManagementBar({
     liveInsight: useRef<HTMLButtonElement>(null),
   };
 
-
-
   // Close dropdown when clicking outside any open dropdown and its button
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -121,7 +117,7 @@ function ManagementBar({
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, [openDropdown]);
+  }, [openDropdown, dropdownButtonRefs.liveInsight.current, dropdownButtonRefs[openDropdown]?.current, dropdownRefs[openDropdown]?.current]);
 
   const captureScreenshot = async () => {
     if (isCapturing || !onScreenshotTaken) {
@@ -228,7 +224,6 @@ function ManagementBar({
               <span className="bar bar3" />
             </span>
             <span className="whitespace-nowrap ml-2">Live Insight</span>
-
           </button>
           {openDropdown === "liveInsight" && (
             <motion.div
@@ -322,9 +317,26 @@ function ManagementBar({
                           {transcripts.length === 0 ? (
                             <div className="p-8 text-center text-gray-500 dark:text-gray-400 flex flex-col items-center justify-center">
                               {/* Muted microphone icon for no transcript */}
-                              <svg xmlns="http://www.w3.org/2000/svg" className="mx-auto mb-4 opacity-50" width="48" height="48" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19h6m-3 0v-1m-4-4V9a4 4 0 118 0v5m-8 0a4 4 0 008 0m-8 0v1a4 4 0 008 0v-1m-8 0L4 21m16-2l-2-2" /></svg>
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                className="mx-auto mb-4 opacity-50"
+                                width="48"
+                                height="48"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M9 19h6m-3 0v-1m-4-4V9a4 4 0 118 0v5m-8 0a4 4 0 008 0m-8 0v1a4 4 0 008 0v-1m-8 0L4 21m16-2l-2-2"
+                                />
+                              </svg>
                               <p>No transcript yet</p>
-                              <p className="text-sm mt-2">Transcripts will appear here when available.</p>
+                              <p className="text-sm mt-2">
+                                Transcripts will appear here when available.
+                              </p>
                             </div>
                           ) : (
                             <div className="space-y-1 font-mono text-xs">
@@ -341,9 +353,7 @@ function ManagementBar({
                       content: (
                         <div>
                           <div>
-                            <ScreenshotList
-                              screenshots={screenshots}
-                            />
+                            <ScreenshotList screenshots={screenshots} />
                           </div>
                         </div>
                       ),

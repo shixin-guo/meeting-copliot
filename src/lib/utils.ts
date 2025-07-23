@@ -31,7 +31,9 @@ export function parseZoomMeetingLink(
   }
 }
 
-
 export function removeJsonTags(input: string): string {
-  return input.replace(/^```(json|css|html|vue|javascript|markdown|typescript|scss|sql)|```$/gm, "");
+  return input.replace(
+    /^```(json|css|html|vue|javascript|markdown|typescript|scss|sql)|```$/gm,
+    "",
+  );
 }

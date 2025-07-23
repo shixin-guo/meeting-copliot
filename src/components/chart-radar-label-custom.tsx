@@ -34,7 +34,6 @@ const chartConfig = {
     label: "Desktop",
     color: "var(--chart-1)",
   },
-
 } satisfies ChartConfig;
 
 export function ChartRadarLabelCustom() {
