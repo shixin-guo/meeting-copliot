@@ -289,11 +289,14 @@ function App() {
     summary: "Meeting summary will be generated...",
   };
   // dark mode 切换
+  // const [isDark, setIsDark] = useState(() => {
+  //   if (typeof window !== "undefined") {
+  //     return document.documentElement.classList.contains("dark");
+  //   }
+  //   return true;
+  // });
   const [isDark, setIsDark] = useState(() => {
-    if (typeof window !== "undefined") {
-      return document.documentElement.classList.contains("dark");
-    }
-    return true;
+    return false;
   });
   const toggleDark = () => {
     setIsDark((prev) => {

@@ -30,7 +30,7 @@ import {
   CheckCircle,
   AlertCircle,
   Clock,
-  Sync,
+  CloudCheck,
   Database,
   Brain,
   Plus,
@@ -711,7 +711,7 @@ Format as markdown with clear sections.`;
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Sync className="w-5 h-5" />
+                <CloudCheck className="w-5 h-5" />
                 Sync to External Systems
               </CardTitle>
             </CardHeader>
@@ -733,7 +733,7 @@ Format as markdown with clear sections.`;
                       disabled={isSyncing}
                       className="w-full flex items-center gap-2"
                     >
-                      <Sync className="w-4 h-4" />
+                      <CloudCheck className="w-4 h-4" />
                       {isSyncing ? "Syncing..." : "Sync to Salesforce"}
                       {getStatusIcon(syncStatus.salesforce)}
                     </Button>
