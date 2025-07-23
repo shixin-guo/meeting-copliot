@@ -13,11 +13,15 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { ManagementBar } from "@/components/animate-ui/ui-elements/management-bar";
-import { Video, Sparkles, Copy, X } from "lucide-react";
+import { Video, Sparkles, Copy, X, Home } from "lucide-react";
 import MeetingAIInput from "@/components/ui/ask-ai-input";
 import { parseZoomMeetingLink } from "@/lib/utils";
 import PostMeetingFollowUp from "@/components/PostMeetingFollowUp";
+import LandingPage from "./LandingPage";
+
 function App() {
+  const [currentView, setCurrentView] = useState<'landing' | 'meeting'>('landing');
+  
   const client = ZoomMtgEmbedded.createClient();
 
   // Configuration - read from environment variables
@@ -50,51 +54,53 @@ function App() {
     }>
   >([]);
 
-  // State for dialog and meeting status
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [isInMeeting, setIsInMeeting] = useState(false);
-
-  // State for live transcripts
+  // State for transcripts
   const [transcripts, setTranscripts] = useState<string[]>([]);
 
-  const role = 0;
-  const userEmail = "";
-  const registrantToken = "";
-  const zakToken = "";
+  // State for todos
+  const [todos, setTodos] = useState<
+    Array<{
+      id: string;
+      content: string;
+      completed: boolean;
+    }>
+  >([]);
 
-  // Remove meetingLink state, add clipboard read logic
-  // Remove: const [meetingLink, setMeetingLink] = useState("");
-  // Remove: const [isLinkCopied, setIsLinkCopied] = useState(false);
-  // Add state for clipboard parse feedback
+  // Meeting state
+  const [isInMeeting, setIsInMeeting] = useState(false);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [meetingEnded, setMeetingEnded] = useState(false);
+  const [showFollowUp, setShowFollowUp] = useState(false);
+
+  // Clipboard state
   const [clipboardMeeting, setClipboardMeeting] = useState<{
     meetingNumber: string;
-    password: string;
+    password?: string;
   } | null>(null);
-  const [clipboardError, setClipboardError] = useState<string>("");
   const [isReadingClipboard, setIsReadingClipboard] = useState(false);
+  const [clipboardError, setClipboardError] = useState<string | null>(null);
 
-  // Clipboard handler
+  const role = 0; // 0 for participant, 1 for host
+
+  // Function to read clipboard and parse Zoom meeting link
   const handleReadClipboard = async () => {
     setIsReadingClipboard(true);
-    setClipboardError("");
+    setClipboardError(null);
+
     try {
       const text = await navigator.clipboard.readText();
-      const parsed = parseZoomMeetingLink(text);
-      if (parsed) {
-        setClipboardMeeting(parsed);
-        setMeetingNumber(parsed.meetingNumber);
-        setPassWord(parsed.password);
+      const parsedMeeting = parseZoomMeetingLink(text);
+
+      if (parsedMeeting) {
+        setClipboardMeeting(parsedMeeting);
+        setMeetingNumber(parsedMeeting.meetingNumber);
+        setPassWord(parsedMeeting.password || "");
       } else {
-        setClipboardMeeting(null);
-        setMeetingNumber("");
-        setPassWord("");
-        setClipboardError("No valid Zoom meeting link found in clipboard.");
+        setClipboardError("No valid Zoom meeting link found in clipboard");
       }
-    } catch {
-      setClipboardMeeting(null);
-      setMeetingNumber("");
-      setPassWord("");
-      setClipboardError("Failed to read clipboard.");
+    } catch (error) {
+      console.error("Failed to read clipboard:", error);
+      setClipboardError("Failed to read clipboard. Please paste the link manually.");
     } finally {
       setIsReadingClipboard(false);
     }
@@ -200,102 +206,71 @@ function App() {
     dataUrl: string;
     timestamp: Date;
   }) => {
-    // Add screenshot with placeholder OCR result
-    setScreenshots((prev) => [{ ...screenshot, ocrResult: "Analyzing..." }, ...prev]);
-    // Fetch OCR result
-    console.log("screenshot.dataUrl", screenshot.dataUrl);
-    const ocrResult = await fetchOcrResult(screenshot.dataUrl);
-    setScreenshots((prev) => prev.map((s) => (s.id === screenshot.id ? { ...s, ocrResult } : s)));
+    console.log("Screenshot taken:", screenshot);
+
+    // Add screenshot to state immediately
+    setScreenshots((prev) => [...prev, screenshot]);
+
+    // Perform OCR analysis in background
+    try {
+      const ocrResult = await fetchOcrResult(screenshot.dataUrl);
+      console.log("OCR result:", ocrResult);
+
+      // Update screenshot with OCR result
+      setScreenshots((prev) =>
+        prev.map((s) => (s.id === screenshot.id ? { ...s, ocrResult } : s)),
+      );
+    } catch (error) {
+      console.error("Failed to perform OCR:", error);
+    }
   };
 
   const handleDeleteScreenshot = (id: string) => {
     setScreenshots((prev) => prev.filter((s) => s.id !== id));
   };
 
-  // 模拟 RAG AI 分析过程
-  useEffect(() => {
-    const processingDocs = uploadedDocs.filter((doc) => doc.processing);
-    if (processingDocs.length === 0) {
-      return;
-    }
-    // 只处理第一个 processing 的文档，避免多次 setTimeout
-    const timer = setTimeout(() => {
-      setUploadedDocs((prev) =>
-        prev.map((doc) => (doc.processing ? { ...doc, processing: false } : doc)),
-      );
-    }, 2000);
-    return () => clearTimeout(timer);
-  }, [uploadedDocs]);
-
-  // WebSocket for live transcript
-  useEffect(() => {
-    const socket = new WebSocket("ws://localhost:3789/ws");
-    socket.onopen = () => {
-      console.log("✅ WebSocket connected");
-    };
-    socket.onmessage = (event) => {
-      try {
-        const msg = JSON.parse(event.data);
-        if (msg.type === "transcript") {
-          const line = `[${new Date(msg.timestamp).toLocaleTimeString()}] ${msg.user}: ${msg.content}`;
-          setTranscripts((prev) => [...prev, line]);
-        }
-      } catch {
-        // err removed, linter fix
-        console.warn("Non-JSON or invalid message:", event.data);
-      }
-    };
-    socket.onerror = (err) => {
-      console.error("WebSocket error:", err);
-    };
-    socket.onclose = () => {
-      console.warn("WebSocket connection closed");
-    };
-    return () => {
-      socket.close();
-    };
-  }, []);
-  const [todos, setTodos] = useState<Array<{ id: string; content: string; completed: boolean }>>(
-    [],
-  );
-
-  // State for post-meeting follow-up
-  const [showFollowUp, setShowFollowUp] = useState(false);
-  const [meetingEnded, setMeetingEnded] = useState(false);
-  async function startMeeting(signature: string) {
-    const meetingSDKElement = document.getElementById("meetingSDKElement")!;
+  const startMeeting = async (signature: string) => {
     try {
       await client.init({
-        zoomAppRoot: meetingSDKElement,
+        zoomAppRoot: document.getElementById("meetingSDKElement")!,
         language: "en-US",
         patchJsMedia: true,
         leaveOnPageUnload: true,
-        customize: {
-          video: {
-            viewSizes: {
-              default: {
-                width: 900,
-                height: 600,
-              },
-            },
-            defaultViewType: "speaker" as SuspensionViewType,
-          },
-        },
+        stayAwake: true,
       });
+
       await client.join({
         signature: signature,
         meetingNumber: meetingNumber,
         password: passWord,
         userName: userName,
-        userEmail: userEmail,
-        tk: registrantToken,
-        zak: zakToken,
+        userEmail: "",
+        tk: "",
+        zak: "",
       });
-      console.log("joined successfully");
+
+      // Listen for meeting events
+      client.on("meeting-status", (data: { meetingStatus: number; reason: string }) => {
+        console.log("Meeting status:", data);
+        if (data.meetingStatus === 3) {
+          // Meeting ended
+          handleMeetingEnd();
+        }
+      });
+
+      // Listen for chat messages to capture transcripts
+      client.on("chat-on-message", (data: any) => {
+        console.log("Chat message:", data);
+        if (data.message) {
+          setTranscripts((prev) => [...prev, data.message]);
+        }
+      });
+
+      console.log("Meeting started successfully");
     } catch (error) {
-      console.log(error);
+      console.error("Failed to start meeting:", error);
     }
-  }
+  };
 
   // Function to handle meeting end and show follow-up
   const handleMeetingEnd = () => {
@@ -315,8 +290,40 @@ function App() {
     summary: "Meeting summary will be generated..."
   };
 
+  // Show landing page by default
+  if (currentView === 'landing') {
+    return (
+      <div className="relative">
+        <LandingPage onStartMeeting={() => setCurrentView('meeting')} />
+        {/* Floating action button to access meeting app */}
+        <div className="fixed bottom-8 right-8 z-50">
+          <Button
+            onClick={() => setCurrentView('meeting')}
+            size="lg"
+            className="bg-blue-600 hover:bg-blue-700 text-white rounded-full shadow-2xl hover:shadow-3xl transition-all duration-300 hover:scale-110 px-6 py-6"
+          >
+            <Video className="mr-2 h-6 w-6" />
+            Launch Meeting App
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="App min-h-screen bg-background">
+      {/* Navigation */}
+      <div className="fixed top-4 left-4 z-50">
+        <Button
+          onClick={() => setCurrentView('landing')}
+          variant="outline"
+          className="bg-white/90 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300"
+        >
+          <Home className="mr-2 h-4 w-4" />
+          Back to Home
+        </Button>
+      </div>
+
       {showFollowUp ? (
         <PostMeetingFollowUp 
           meetingData={mockMeetingData}
@@ -459,6 +466,7 @@ function App() {
           </div>
         </div>
       </main>
+    )}
     </div>
   );
 }
