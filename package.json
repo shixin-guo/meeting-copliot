@@ -1,7 +1,7 @@
 {
   "name": "ai-meeting-copilot",
   "version": "1.0.0",
-  "author": "Shixin Guo <shixin.guo@zoom.us>",
+  "author": "Shixin Guo",
   "description": "An intelligent AI-powered meeting assistant that enhances Zoom meetings with real-time transcription, screenshot analysis, and post-meeting follow-up capabilities.",
   "homepage": "https://github.com/shixin-guo/meeting-copliot",
   "repository": {
