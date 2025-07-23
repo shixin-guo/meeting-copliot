@@ -28,7 +28,9 @@ export function ScreenshotList({ screenshots }: ScreenshotListProps) {
   const formatDurationSincePageLoad = (timestamp: Date) => {
     const now = pageLoadTime;
     let diff = Math.floor((now.getTime() - new Date(timestamp).getTime()) / 1000); // seconds
-    if (diff < 0) { diff = 0; }
+    if (diff < 0) {
+      diff = 0;
+    }
     const hours = String(Math.floor(diff / 3600)).padStart(2, "0");
     const minutes = String(Math.floor((diff % 3600) / 60)).padStart(2, "0");
     const seconds = String(diff % 60).padStart(2, "0");

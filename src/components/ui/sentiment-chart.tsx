@@ -2,12 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { TrendingUp, TrendingDown, Minus } from "lucide-react";
-import {
-  CartesianGrid,
-  Line,
-  LineChart,
-  XAxis,
-} from "recharts";
+import { CartesianGrid, Line, LineChart, XAxis } from "recharts";
 
 import {
   type ChartConfig,
@@ -62,7 +57,9 @@ export function SentimentChart() {
   // 实时添加新数据
   useEffect(() => {
     const interval = setInterval(() => {
-      if (isAnimating) { return; }
+      if (isAnimating) {
+        return;
+      }
       setIsAnimating(true);
       const lastDesktop = chartData.length > 0 ? chartData[chartData.length - 1].desktop : 50;
       const lastMobile = chartData.length > 0 ? chartData[chartData.length - 1].mobile : 40;
@@ -89,7 +86,9 @@ export function SentimentChart() {
         };
         setChartData((prev) => {
           const updated = [...prev, newDataPoint];
-          if (updated.length > 20) { return updated.slice(-20); }
+          if (updated.length > 20) {
+            return updated.slice(-20);
+          }
           return updated;
         });
         setCurrentScore(newDesktop);
@@ -104,12 +103,18 @@ export function SentimentChart() {
 
   // trend, getTrendIcon, getSentimentLabel, getScoreColor 保持不变，trend 计算用 desktop
   const getTrend = () => {
-    if (chartData.length < 2) { return "neutral"; }
+    if (chartData.length < 2) {
+      return "neutral";
+    }
     const recent = chartData.slice(-5);
     const avgRecent = recent.reduce((sum, item) => sum + item.desktop, 0) / recent.length;
     const avgPrevious = chartData.slice(-10, -5).reduce((sum, item) => sum + item.desktop, 0) / 5;
-    if (avgRecent > avgPrevious + 2) { return "up"; }
-    if (avgRecent < avgPrevious - 2) { return "down"; }
+    if (avgRecent > avgPrevious + 2) {
+      return "up";
+    }
+    if (avgRecent < avgPrevious - 2) {
+      return "down";
+    }
     return "neutral";
   };
   const trend = getTrend();

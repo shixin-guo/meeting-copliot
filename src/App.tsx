@@ -1,7 +1,7 @@
 import "./App.css";
 import ZoomMtgEmbedded from "@zoom/meetingsdk/embedded";
 import { SignJWT } from "jose";
-import { useState, } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {

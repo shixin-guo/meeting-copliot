@@ -117,7 +117,12 @@ function ManagementBar({
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, [openDropdown, dropdownButtonRefs.liveInsight.current, dropdownButtonRefs[openDropdown]?.current, dropdownRefs[openDropdown]?.current]);
+  }, [
+    openDropdown,
+    dropdownButtonRefs.liveInsight.current,
+    dropdownButtonRefs[openDropdown]?.current,
+    dropdownRefs[openDropdown]?.current,
+  ]);
 
   const captureScreenshot = async () => {
     if (isCapturing || !onScreenshotTaken) {
