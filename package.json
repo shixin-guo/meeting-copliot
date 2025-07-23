@@ -1,16 +1,24 @@
 {
-  "name": "meetingsdk-react-sample",
-  "version": "4.0.0",
-  "author": "Zoom Video Communications, Inc.",
-  "contributors": [
-    {
-      "name": "Tommy Gaessler"
-    },
-    {
-      "name": "EkaanshArora"
-    }
+  "name": "ai-meeting-copilot",
+  "version": "1.0.0",
+  "author": "Shixin Guo <shixin.guo@zoom.us>",
+  "description": "An intelligent AI-powered meeting assistant that enhances Zoom meetings with real-time transcription, screenshot analysis, and post-meeting follow-up capabilities.",
+  "homepage": "https://github.com/shixin-guo/meeting-copliot",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/shixin-guo/meeting-copliot.git"
+  },
+  "keywords": [
+    "zoom",
+    "meeting",
+    "ai",
+    "copilot",
+    "transcription",
+    "ocr",
+    "rag",
+    "openrouter",
+    "langchain"
   ],
-  "homepage": "",
   "private": true,
   "type": "module",
   "scripts": {
