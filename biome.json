@@ -1,0 +1,67 @@
+{
+  "$schema": "https://biomejs.dev/schemas/1.4.1/schema.json",
+  "linter": {
+    "enabled": true,
+    "rules": {
+      "recommended": true,
+      "a11y": {
+        "recommended": false,
+        "noSvgWithoutTitle": "off"
+      },
+      "complexity": {
+        "recommended": true,
+        "noForEach": "off",
+        "noBannedTypes": "error"
+      },
+      "style": {
+        "recommended": true,
+        "useBlockStatements": {
+          "level": "warn"
+        },
+        "useDefaultParameterLast": "off",
+        "useSelfClosingElements": {
+          "level": "warn",
+          "fix": "safe"
+        },
+        "useTemplate": "error",
+        "useConst": "error"
+      },
+      "suspicious": {
+        "recommended": true,
+        "noDebugger": "warn",
+        "noExplicitAny": "off"
+      },
+      "correctness": {
+        "recommended": true,
+        "noUndeclaredVariables": "error",
+        "noUnusedVariables": {
+          "fix": "none",
+          "level": "warn"
+        },
+        "noUnusedImports": "error"
+      }
+    }
+  },
+  "formatter": {
+    "enabled": true,
+    "indentStyle": "space",
+    "indentWidth": 2,
+    "lineWidth": 100
+  },
+  "javascript": {
+    "formatter": {
+      "arrowParentheses": "always",
+      "bracketSameLine": false,
+      "bracketSpacing": true,
+      "jsxQuoteStyle": "double",
+      "quoteProperties": "asNeeded",
+      "semicolons": "always"
+    },
+    "globals": ["browser", "defineBackground"]
+  },
+  "vcs": {
+    "enabled": true,
+    "clientKind": "git",
+    "useIgnoreFile": true
+  }
+}
