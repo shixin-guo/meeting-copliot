@@ -17,6 +17,7 @@ import { Video, Sparkles, Copy, X, Sun, Moon } from "lucide-react";
 import MeetingAIInput from "@/components/ui/ask-ai-input";
 import { parseZoomMeetingLink } from "@/lib/utils";
 import PostMeetingFollowUp from "@/components/PostMeetingFollowUp";
+import LandingPage from "@/components/LandingPage";
 function App() {
   const client = ZoomMtgEmbedded.createClient();
 
@@ -30,6 +31,9 @@ function App() {
       "Please ensure VITE_ZOOM_MEETING_SDK_KEY and VITE_ZOOM_MEETING_SDK_SECRET are set in .env file",
     );
   }
+
+  // State for landing page
+  const [showLandingPage, setShowLandingPage] = useState(true);
 
   // State for meeting inputs
   const [meetingNumber, setMeetingNumber] = useState("");
@@ -347,7 +351,9 @@ function App() {
           {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
         </Button>
       </div>
-      {showFollowUp ? (
+      {showLandingPage ? (
+        <LandingPage onGetStarted={() => setShowLandingPage(false)} />
+      ) : showFollowUp ? (
         <PostMeetingFollowUp 
           meetingData={mockMeetingData}
           onClose={() => setShowFollowUp(false)}
@@ -489,6 +495,7 @@ function App() {
           </div>
         </div>
       </main>
+      )}
     </div>
   );
 }
