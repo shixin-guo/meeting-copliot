@@ -1,126 +1,289 @@
-# Zoom Meeting SDK React sample
+# AI Meeting Copilot
 
-Use of this sample app is subject to our [Terms of Use](https://explore.zoom.us/en/legal/zoom-api-license-and-tou/).
+An intelligent AI-powered meeting assistant that enhances your Zoom meetings with real-time transcription, screenshot analysis, document processing, and post-meeting follow-up capabilities.
 
+![AI Meeting Copilot Interface](https://via.placeholder.com/800x400/4F46E5/FFFFFF?text=AI+Meeting+Copilot)
 
-This repo is a [React](https://reactjs.org/) app generated via [Vite](https://vitejs.dev/) that uses the [Zoom Meeting SDK](https://developers.zoom.us/docs/meeting-sdk/web/) to start and join Zoom meetings and webinars.
+## Features
 
-![Zoom Meeting SDK Client View](/public/images/meetingsdk-web-client-view.gif)
+🤖 **AI-Powered Meeting Preparation**
+- Intelligent meeting setup with AI assistant
+- Document upload and processing with RAG pipeline
+- Todo extraction and management
+- Meeting context analysis
+
+📝 **Real-Time Transcription**
+- Live meeting transcription via WebSocket
+- Automatic transcript processing and analysis
+- Context-aware AI responses
+
+📸 **Smart Screenshot Analysis**
+- One-click screenshot capture during meetings
+- OCR text extraction using OpenRouter/Gemini Vision
+- Automatic content analysis and markdown formatting
+
+📊 **Post-Meeting Intelligence**
+- Comprehensive meeting summaries
+- Action item extraction
+- Follow-up task generation
+- Meeting analytics and insights
+
+🔧 **Advanced Integration**
+- Zoom Meeting SDK integration
+- OpenRouter LLM integration
+- LangChain RAG pipeline
+- Real-time media streaming (RTMS)
 
 ## Installation
 
-To get started, clone the repo:
-
-`$ git clone https://github.com/zoom/meetingsdk-react-sample.git`
-
-## Setup
-
-1. Once cloned, navigate to the `meetingsdk-react-sample` directory:
-
-   `$ cd meetingsdk-react-sample`
-
-1. Then install the dependencies:
-
-   `$ npm install`
-
-1. Open the `meetingsdk-react-sample` directory in your code editor.
-
-1. Open the `src/App.tsx` file, and enter values for the variables:
-
-   **NEW:** To use the [Component View](https://developers.zoom.us/docs/meeting-sdk/web/component-view/), replace `App.tsx` with `App-New.tsx`. (The `leaveUrl` is not needed).
-
-   | Variable                   | Description |
-   | -----------------------|-------------|
-   | authEndpoint          | Required, your Meeting SDK auth endpoint that securely generates a Meeting SDK JWT. [Get a Meeting SDK auth endpoint here.](https://github.com/zoom/meetingsdk-sample-signature-node.js) |
-   | meetingNumber                   | Required, the Zoom Meeting or webinar number. |
-   | passWord                   | Optional, meeting password. Leave as empty string if the meeting does not require a password. |
-   | role                   | Required, `0` to specify participant, `1` to specify host. |
-   | userName                   | Required, a name for the user joining / starting the meeting / webinar. |
-   | userEmail                   | Required for Webinar, optional for Meeting, required for meeting and webinar if [registration is required](https://support.zoom.us/hc/en-us/articles/360054446052-Managing-meeting-and-webinar-registration). The email of the user starting or joining the meeting / webinar. |
-   | registrantToken            | Required if your [meeting](https://developers.zoom.us/docs/meeting-sdk/web/client-view/meetings/#join-meeting-with-registration-required) or [webinar](https://developers.zoom.us/docs/meeting-sdk/web/client-view/webinars/#join-webinar-with-registration-required) requires [registration](https://support.zoom.us/hc/en-us/articles/360054446052-Managing-meeting-and-webinar-registration). |
-   | zakToken            | Required to start meetings or webinars on external Zoom user's behalf, the [authorized Zoom user's ZAK token](https://developers.zoom.us/docs/meeting-sdk/auth/#start-meetings-and-webinars-with-a-zoom-users-zak-token). The ZAK can also be used to join as an [authenticated participant](https://support.zoom.com/hc/en/article?id=zm_kb&sysparm_article=KB0063837). |
-   | leaveUrl                   | Required for Client View, the url the user is taken to once the meeting is over. |
-
-   Example:
-
-   ```js
-   var authEndpoint = 'http://localhost:4000'
-   var meetingNumber = '123456789'
-   var passWord = ''
-   var role = 0
-   var userName = 'React'
-   var userEmail = ''
-   var registrantToken = ''
-   var zakToken = ''
-   var leaveUrl = 'http://localhost:5173'
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/shixin-guo/meeting-copliot.git
+   cd meeting-copliot
    ```
 
-2. Save `App.tsx`.
+2. Install frontend dependencies:
+   ```bash
+   npm install
+   ```
 
-3. Run the app:
+3. Install backend dependencies:
+   ```bash
+   cd server
+   npm install
+   cd ..
+   ```
 
-   `$ npm run dev`
+## Configuration
+
+### Frontend Environment Variables
+
+Create a `.env` file in the root directory:
+
+```env
+VITE_ZOOM_MEETING_SDK_KEY=your_zoom_meeting_sdk_key
+VITE_ZOOM_MEETING_SDK_SECRET=your_zoom_meeting_sdk_secret
+VITE_OPENROUTER_API_KEY=your_openrouter_api_key
+```
+
+### Backend Environment Variables
+
+Create a `.env` file in the `server` directory:
+
+```env
+PORT=3000
+ZOOM_SECRET_TOKEN=your_zoom_secret_token
+ZM_CLIENT_ID=your_zoom_client_id
+ZM_CLIENT_SECRET=your_zoom_client_secret
+WEBHOOK_PATH=/webhook
+OPENROUTER_API_KEY=your_openrouter_api_key
+```
+
+### Required API Keys
+
+| Service | Purpose | How to Get |
+|---------|---------|------------|
+| Zoom Meeting SDK | Meeting integration | [Zoom Marketplace](https://marketplace.zoom.us/) |
+| OpenRouter | AI/LLM services | [OpenRouter](https://openrouter.ai/) |
+| Zoom RTMS | Real-time media streaming | [Zoom Developer Portal](https://developers.zoom.us/) |
 
 ## Usage
 
-1. Navigate to http://localhost:5173 and click "Join Meeting".
+### Development Mode
 
-   ### Client View
+1. Start the backend server:
+   ```bash
+   cd server
+   npm start
+   ```
 
-   ![Zoom Meeting SDK Client View](/public/images/meetingsdk-web-client-view.gif)
+2. In a new terminal, start the frontend:
+   ```bash
+   npm run dev
+   ```
 
-   ### Component View
+3. Open your browser and navigate to `http://localhost:5173`
 
-   ![Zoom Meeting SDK Component View](/public/images/meetingsdk-web-component-view.gif)
+### Using the AI Meeting Copilot
 
-   Learn more about [Gallery View requirements](https://developers.zoom.us/docs/meeting-sdk/web/gallery-view/) and [see more product screenshots](https://developers.zoom.us/docs/meeting-sdk/web/gallery-view/#how-views-look-with-and-without-sharedarraybuffer).
+1. **Meeting Preparation**
+   - Click "AI Copilot Meeting Prep" to open the preparation dialog
+   - Upload relevant documents for context
+   - Set meeting objectives and preferences
+   - Paste your Zoom meeting link
+
+2. **During the Meeting**
+   - Take screenshots for later analysis
+   - Monitor live transcription
+   - Create and manage todos
+   - Ask AI questions about meeting content
+
+3. **Post-Meeting**
+   - Review generated meeting summary
+   - Export action items and follow-ups
+   - Access OCR results from screenshots
+   - Generate meeting reports
+
+## Architecture
+
+### Frontend (React + TypeScript)
+- **Framework**: React 18 with Vite
+- **UI Components**: Radix UI + Tailwind CSS
+- **Meeting SDK**: Zoom Meeting SDK for web
+- **State Management**: React hooks
+- **Real-time Communication**: WebSocket for live transcription
+
+### Backend (Node.js + Express)
+- **Server**: Express.js with WebSocket support
+- **AI Integration**: OpenRouter for LLM services
+- **Document Processing**: LangChain RAG pipeline
+- **Media Processing**: Zoom RTMS for real-time streams
+- **File Support**: PDF, DOCX, TXT, MD document loaders
+
+### Key Components
+
+```
+├── src/
+│   ├── App.tsx                 # Main application component
+│   ├── components/
+│   │   ├── ui/                 # Reusable UI components
+│   │   ├── PostMeetingFollowUp.tsx
+│   │   └── animate-ui/         # Animated UI elements
+│   └── lib/
+│       └── utils.ts            # Utility functions
+├── server/
+│   ├── index.js                # Main server & RTMS handler
+│   ├── ragPipeline.js          # RAG logic & document processing
+│   ├── chatWithOpenrouter.js   # LLM integration
+│   └── loaders/                # Document loaders
+└── public/                     # Static assets
+```
+
+## API Endpoints
+
+The backend server provides several API endpoints:
+
+### Meeting & Transcription
+- `POST /webhook` - Zoom RTMS webhook handler
+- `WebSocket /ws` - Real-time transcript streaming
+
+### AI & Analysis
+- `POST /api/ask-kb` - Query knowledge base with meeting context
+- `POST /api/llm-direct` - Direct LLM chat interface
+- `POST /api/extract-todos` - Extract todos from text using AI
+
+### Media & Screenshots
+- `GET /api/latest-image` - Get the most recent screenshot
+- Static files served from `/recordings` directory
+
+## Development
+
+### Code Style
+- **Linting**: Biome for code formatting and linting
+- **Git Hooks**: Lefthook for pre-commit checks
+- **TypeScript**: Strict type checking enabled
+
+### Available Scripts
+
+```bash
+# Frontend
+npm run dev          # Start development server
+npm run build        # Build for production
+npm run lint         # Run linter
+npm run format       # Format code
+npm run preview      # Preview production build
+
+# Backend
+cd server
+npm start            # Start backend server
+```
 
 ## Deployment
 
-The React Sample App can be easily deployed to [GitHub Pages](#github-pages), or [another static web hosting service](#other-static-web-hosting), like an AWS S3 bucket.
+### Production Build
 
-### GitHub Pages
+1. Build the frontend:
+   ```bash
+   npm run build
+   ```
 
-1. Clone this repo and configure the `authEndpoint`.
+2. Configure environment variables for production
 
-1. Create a new repo on [GitHub](https://github.com).
+3. Deploy both frontend (`dist/`) and backend (`server/`) to your hosting platform
 
-1. Add the remote to your project:
+### Docker Deployment (Optional)
 
-   `$ git remote add myorigin GITHUB_URL/GITHUB_USERNAME/GITHUB_REPO_NAME.git`
+Create a `Dockerfile` for containerized deployment:
 
-1. Open the `vite.config.ts` file and add `base: "/GITHUB_REPO_NAME/"` in the `defineConfig` helper.
+```dockerfile
+FROM node:18-alpine
+WORKDIR /app
+COPY package*.json ./
+RUN npm install
+COPY . .
+RUN npm run build
+EXPOSE 3000 5173
+CMD ["npm", "start"]
+```
 
-1. Build your project:
+## Contributing
 
-   `$ npm run build`
+1. Fork the repository
+2. Create a feature branch: `git checkout -b feature/amazing-feature`
+3. Commit your changes: `git commit -m 'Add amazing feature'`
+4. Push to the branch: `git push origin feature/amazing-feature`
+5. Open a Pull Request
 
-1. Rename the `build` folder to `docs`
+## Troubleshooting
 
-1. Git add, commit, and push your project:
+### Common Issues
 
-   `$ git add -A`
+**Meeting SDK not loading**
+- Verify your Zoom Meeting SDK credentials
+- Check that environment variables are properly set
+- Ensure you're using HTTPS in production
 
-   `$ git commit -m "deploying to github"`
+**Transcription not working**
+- Check WebSocket connection to backend
+- Verify Zoom RTMS configuration
+- Ensure webhook URL is accessible
 
-   `$ git push myorigin main`
+**AI features not responding**
+- Verify OpenRouter API key is valid
+- Check network connectivity
+- Review server logs for errors
 
-1. On GitHub, in your repo, navigate to the "settings" page, scroll down to the "GitHub Pages" section, and choose the "main" branch and "/docs" folder for the source.
+**Screenshot OCR failing**
+- Ensure OpenRouter API has vision model access
+- Check image format and size limits
+- Verify API rate limits
 
-1. Now your project will be deployed to https://GITHUB_USERNAME.github.io/GITHUB_REPO_NAME.
+### Debug Mode
 
-### Other Static Web Hosting
+Enable debug logging by setting:
+```env
+DEBUG=true
+LOG_LEVEL=debug
+```
 
-1. Build your project:
+## License
 
-   `$ npm run build`
+This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details.
 
-1. Deploy the complied `/build` directory to a static web hosting service, like an AWS S3 bucket.
+## Acknowledgments
 
-### Advanced Deployment
+- [Zoom Meeting SDK](https://developers.zoom.us/docs/meeting-sdk/) for meeting integration
+- [OpenRouter](https://openrouter.ai/) for AI/LLM services
+- [LangChain](https://langchain.com/) for RAG pipeline
+- [Radix UI](https://radix-ui.com/) for accessible UI components
 
-For more advanced instructions on deployment, [see the Vite Deployment docs](https://vitejs.dev/guide/build.html#deployment).
+## Support
 
-## Need help?
+For support and questions:
+- Create an issue in this repository
+- Check the [documentation](https://github.com/shixin-guo/meeting-copliot/wiki)
+- Review existing issues and discussions
 
-If you're looking for help, try [Developer Support](https://devsupport.zoom.us) or our [Developer Forum](https://devforum.zoom.us). Priority support is also available with [Premier Developer Support](https://explore.zoom.us/docs/en-us/developer-support-plans.html) plans.
+---
+
+**Built with ❤️ for better meetings**
