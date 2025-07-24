@@ -31,7 +31,7 @@ const transcriptLines: string[] = [];
 //   return y + lineHeight;
 // }
 
-const socket = new WebSocket("ws://localhost:3789/ws");
+const socket = new WebSocket("ws://localhost:3000/ws");
 
 socket.onopen = () => {
   console.log("✅ WebSocket connected");
