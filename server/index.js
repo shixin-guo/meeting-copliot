@@ -192,7 +192,7 @@ app.get("/api/transcripts", async (_req, res) => {
   try {
     res.json({
       transcripts: storedTranscripts,
-      count: storedTranscripts.length
+      count: storedTranscripts.length,
     });
   } catch (err) {
     console.error("Error in /api/transcripts:", err);
@@ -207,7 +207,7 @@ app.get("/api/screenshots", async (_req, res) => {
     if (!fs.existsSync(recordingsDir)) {
       return res.status(404).json({ error: "No recordings directory found" });
     }
-    
+
     // Get all jpg and png files
     const files = fs
       .readdirSync(recordingsDir)
@@ -215,13 +215,13 @@ app.get("/api/screenshots", async (_req, res) => {
       .map((f) => ({
         name: f,
         timestamp: fs.statSync(path.join(recordingsDir, f)).mtime.getTime(),
-        path: `/recordings/${f}`
+        path: `/recordings/${f}`,
       }))
       .sort((a, b) => b.timestamp - a.timestamp); // newest first
-    
+
     res.json({
       screenshots: files,
-      count: files.length
+      count: files.length,
     });
   } catch (err) {
     console.error("Error in /api/screenshots:", err);
@@ -493,7 +493,7 @@ function connectToMediaWebSocket(mediaUrl, meetingUuid, streamId, signalingSocke
         const transcriptEntry = {
           speaker: msg.content.user_name || "Unknown",
           timestamp: Date.now(),
-          content: msg.content.data
+          content: msg.content.data,
         };
         storedTranscripts.push(transcriptEntry);
 
