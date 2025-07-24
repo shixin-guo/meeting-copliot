@@ -170,7 +170,7 @@ export function InsightSentiment() {
   };
 
   return (
-    <Card className="bg-background/30 border-none rounded-none shadow-none gap-2">
+    <Card className="bg-background/0 border-none rounded-none shadow-none gap-2">
       <CardContent>
         <div className="flex items-center gap-3 mb-6">
           <div className="text-center">

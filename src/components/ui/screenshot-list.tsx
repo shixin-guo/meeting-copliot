@@ -64,7 +64,7 @@ export function ScreenshotList({ screenshots }: ScreenshotListProps) {
       <div className=" rounded-lg shadow-lg  overflow-hidden">
         <div className="overflow-y-auto max-h-[400px]">
           {screenshots.length === 0 ? (
-            <div className="p-8 text-center text-gray-500 dark:text-gray-400">
+            <div className="p-8 text-center ">
               <Camera size={48} className="mx-auto mb-4 opacity-50" />
               <p>No screenshots yet</p>
               <p className="text-sm mt-2">

@@ -199,7 +199,7 @@ function ManagementBar({
   };
 
   return (
-    <div className="relative" ref={managementBarRef}>
+    <div className="relative z-50" ref={managementBarRef}>
       <Draggable bounds="body" defaultPosition={{ x: 0, y: 0 }} handle=".drag-handle">
         <div className="flex w-fit flex-nowrap items-center gap-y-1 rounded-full border border-border bg-background/30  py-1 px-2 shadow-lg cursor-move drag-handle">
           {/* Ask AI Button */}
@@ -219,7 +219,7 @@ function ManagementBar({
           <button
             ref={dropdownButtonRefs.liveInsight}
             onClick={() => setOpenDropdown(openDropdown === "liveInsight" ? null : "liveInsight")}
-            className={`flex items-center rounded-lg mx-1 px-2 py-1 text-gray-700 dark:text-gray-300 transition-all duration-300 text-sm h-8 min-w-0`}
+            className={`flex items-center rounded-lg mx-1 px-2 py-1  transition-all duration-300 text-sm h-8 min-w-0`}
             aria-label={openDropdown === "liveInsight" ? "Stop Live Insight" : "Start Live Insight"}
             style={{ minWidth: 0 }}
           >
@@ -263,7 +263,7 @@ function ManagementBar({
             >
               <div ref={dropdownRefs.todo}>
                 {totalCount === 0 ? (
-                  <div className="p-8 text-center text-gray-500 dark:text-gray-400 flex flex-col items-center justify-center">
+                  <div className="p-8 text-center  flex flex-col items-center justify-center">
                     {/* Robot icon for AI-powered todo list */}
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
@@ -359,14 +359,14 @@ function ManagementBar({
               ariaLabel="Analytics"
             >
               <div ref={dropdownRefs.analytics}>
-                <Tabs defaultValue="transcript" className="w-full">
+                <Tabs defaultValue="transcript" className="w-full bg-background/20">
                   <TabsList>
                     <TabsTrigger value="transcript">Transcript</TabsTrigger>
                     <TabsTrigger value="screenshots">Screenshots</TabsTrigger>
                   </TabsList>
                   <TabsContent value="transcript">
                     {transcripts.length === 0 ? (
-                      <div className="p-8 text-center text-gray-500 dark:text-gray-400 flex flex-col items-center justify-center">
+                      <div className="p-8 text-center  flex flex-col items-center justify-center">
                         {/* Muted microphone icon for no transcript */}
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
@@ -417,7 +417,7 @@ function ManagementBar({
                 className="absolute top-full left-0 mt-2 w-full bg-background/30  border border-border rounded-lg shadow-xl z-50"
               >
                 <div className="p-2">
-                  <AIInput onSubmit={handleAskSubmit} className="rounded-lg">
+                  <AIInput onSubmit={handleAskSubmit} className="rounded-lg bg-background/20">
                     <AIInputTextarea
                       onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
                         setText(e.target.value)
@@ -480,7 +480,7 @@ function ManagementBar({
   .bar {
     display: inline-block;
     width: 2px;
-    background: #555;
+    background: red;
     border-radius: 1px;
     margin: 0 0.5px;
     animation: sound 1.2s infinite ease-in-out;

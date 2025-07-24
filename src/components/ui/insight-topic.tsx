@@ -30,7 +30,7 @@ const chartConfig = {
 
 export function InsightTopic() {
   return (
-    <Card className="bg-background/30 border-none rounded-none shadow-none gap-2">
+    <Card className="bg-background/0 border-none rounded-none shadow-none gap-2">
       <CardContent className="pb-0">
         <ChartContainer config={chartConfig} className="mx-auto aspect-square w-[180px]">
           <RadarChart

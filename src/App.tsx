@@ -273,11 +273,11 @@ function App() {
           video: {
             viewSizes: {
               default: {
-                width: 900,
-                height: 600,
+                width: 1204 * 0.8,
+                height: 980 * 0.8,
               },
             },
-            defaultViewType: "speaker" as SuspensionViewType,
+            defaultViewType: "active" as SuspensionViewType,
           },
         },
       });
@@ -291,6 +291,25 @@ function App() {
         zak: zakToken,
       });
       console.log("joined successfully");
+      /**
+       * Listens for the events and handles them.
+       * For example:
+       * ```javascript
+       * on("connection-change", (payload) => {
+       *  if (payload.state === 'Closed) {
+       *    console.log("Meeting ended")
+       *  }
+       * })
+       * ```
+       * @param event Event name (for meeting end event, set the event to "connection-change").
+       * @param callback Event handler (for meeting end event, the payload of the callback is payload.state === 'Closed').
+       */
+      client.on("connection-change", (payload) => {
+        if (payload.state === "Closed") {
+          console.log("Meeting ended");
+          handleMeetingEnd();
+        }
+      });
     } catch (error) {
       console.log(error);
     }
