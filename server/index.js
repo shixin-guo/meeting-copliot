@@ -3,8 +3,6 @@ import crypto from "node:crypto";
 import WebSocket from "ws";
 import dotenv from "dotenv";
 import fs from "fs";
-import { exec } from "node:child_process";
-import { promisify } from "node:util";
 import path from "path";
 import { fileURLToPath } from "node:url";
 import http from "node:http";
@@ -24,7 +22,6 @@ dotenv.config();
 
 const app = express();
 const port = process.env.PORT || 3000;
-const execAsync = promisify(exec);
 
 const storedTranscripts = [];
 
@@ -33,201 +30,7 @@ const CLIENT_ID = process.env.ZM_CLIENT_ID;
 const CLIENT_SECRET = process.env.ZM_CLIENT_SECRET;
 const WEBHOOK_PATH = process.env.WEBHOOK_PATH || "/webhook";
 
-app.use(
-  cors({
-    origin: "*", // Or specify your frontend origin: 'http://localhost:9876'
-    methods: ["GET", "POST", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
-  }),
-);
 
-// Middleware to parse JSON bodies in incoming requests
-app.use(express.json());
-
-// Map to keep track of active WebSocket connections and audio chunks
-const activeConnections = new Map();
-
-app.get("/", (_req, res) => {
-  res.sendFile(path.join(__dirname, "public", "index.html"));
-});
-
-// Serve the frontend page for Zoom iframe
-app.get("/home", (_req, res) => {
-  res.sendFile(path.join(__dirname, "public", "home.html"));
-});
-
-// Handle POST requests to the webhook endpoint
-
-app.post(WEBHOOK_PATH, (req, res) => {
-  console.log("RTMS Webhook received:", JSON.stringify(req.body, null, 2));
-  const { event, payload } = req.body;
-
-  // Handle URL validation event
-  if (event === "endpoint.url_validation" && payload?.plainToken) {
-    // Generate a hash for URL validation using the plainToken and a secret token
-    const hash = crypto
-      .createHmac("sha256", ZOOM_SECRET_TOKEN)
-      .update(payload.plainToken)
-      .digest("hex");
-    console.log("Responding to URL validation challenge");
-    return res.json({
-      plainToken: payload.plainToken,
-      encryptedToken: hash,
-    });
-  }
-
-  // Handle RTMS started event
-  if (event === "meeting.rtms_started") {
-    console.log("RTMS Started event received");
-    const { meeting_uuid, rtms_stream_id, server_urls } = payload;
-    // Initiate connection to the signaling WebSocket server
-    connectToSignalingWebSocket(meeting_uuid, rtms_stream_id, server_urls);
-  }
-
-  // Handle RTMS stopped event
-  if (event === "meeting.rtms_stopped") {
-    console.log("RTMS Stopped event received");
-    const { meeting_uuid } = payload;
-
-    // Close all active WebSocket connections for the given meeting UUID
-    if (activeConnections.has(meeting_uuid)) {
-      const connections = activeConnections.get(meeting_uuid);
-      for (const conn of Object.values(connections)) {
-        if (conn && typeof conn.close === "function") {
-          conn.close();
-        }
-      }
-      activeConnections.delete(meeting_uuid);
-    }
-  }
-
-  // Respond with HTTP 200 status
-  res.sendStatus(200);
-});
-
-// New API endpoint to ask LLM with transcript
-app.post("/api/ask-kb", async (req, res) => {
-  const { question } = req.body;
-  if (!question || typeof question !== "string") {
-    return res.status(400).json({ error: "Missing or invalid question" });
-  }
-  try {
-    const answer = await askLLMWithTranscript(question);
-    res.json({ answer });
-  } catch (err) {
-    console.error("Error in /api/ask-kb:", err);
-    res.status(500).json({ error: "Failed to get LLM response" });
-  }
-});
-
-// New API endpoint to get the latest image from the recordings folder
-app.get("/api/latest-image", async (_req, res) => {
-  try {
-    const recordingsDir = path.resolve("recordings");
-    if (!fs.existsSync(recordingsDir)) {
-      return res.status(404).json({ error: "No recordings directory found" });
-    }
-    // Get all jpg and png files
-    const files = fs
-      .readdirSync(recordingsDir)
-      .filter((f) => f.endsWith(".jpg") || f.endsWith(".png"))
-      .map((f) => ({
-        name: f,
-        time: fs.statSync(path.join(recordingsDir, f)).mtime.getTime(),
-      }))
-      .sort((a, b) => b.time - a.time); // newest first
-    if (files.length === 0) {
-      return res.status(404).json({ error: "No image files found" });
-    }
-    const latestFile = files[0].name;
-    const filePath = path.join(recordingsDir, latestFile);
-    const fileBuffer = fs.readFileSync(filePath);
-    const ext = latestFile.endsWith(".png") ? "png" : "jpeg";
-    const dataUrl = `data:image/${ext};base64,${fileBuffer.toString("base64")}`;
-    res.json({
-      id: latestFile,
-      dataUrl,
-      timestamp: files[0].time,
-    });
-  } catch (err) {
-    console.error("Error in /api/latest-image:", err);
-    res.status(500).json({ error: "Failed to get latest image" });
-  }
-});
-
-// New API endpoint to extract todos using OpenRouter JSON mode
-app.post("/api/extract-todos", async (req, res) => {
-  const { input } = req.body;
-  if (!input || typeof input !== "string") {
-    return res.status(400).json({ error: "Missing or invalid input" });
-  }
-  try {
-    const todos = await extractTodosWithOpenRouter(input);
-    res.json({ todos });
-  } catch (err) {
-    console.error("Error in /api/extract-todos:", err);
-    res.status(500).json({ error: "Failed to extract todos" });
-  }
-});
-
-// New API endpoint for direct LLM call via OpenRouter
-app.post("/api/llm-direct", async (req, res) => {
-  const { message, model } = req.body;
-  if (!message || typeof message !== "string") {
-    return res.status(400).json({ error: "Missing or invalid message" });
-  }
-  try {
-    // Dynamically import to avoid circular dependency if any
-    const { chatWithOpenRouter } = await import("./chatWithOpenrouter.js");
-    const llmResponse = await chatWithOpenRouter(message, model);
-    res.json({ response: llmResponse });
-  } catch (err) {
-    console.error("Error in /api/llm-direct:", err);
-    res.status(500).json({ error: "Failed to get LLM response" });
-  }
-});
-
-// New API endpoint to get all stored transcripts
-app.get("/api/transcripts", async (_req, res) => {
-  try {
-    res.json({
-      transcripts: storedTranscripts,
-      count: storedTranscripts.length,
-    });
-  } catch (err) {
-    console.error("Error in /api/transcripts:", err);
-    res.status(500).json({ error: "Failed to get transcripts" });
-  }
-});
-
-// New API endpoint to get all screenshots
-app.get("/api/screenshots", async (_req, res) => {
-  try {
-    const recordingsDir = path.resolve("recordings");
-    if (!fs.existsSync(recordingsDir)) {
-      return res.status(404).json({ error: "No recordings directory found" });
-    }
-
-    // Get all jpg and png files
-    const files = fs
-      .readdirSync(recordingsDir)
-      .filter((f) => f.endsWith(".jpg") || f.endsWith(".png"))
-      .map((f) => ({
-        name: f,
-        timestamp: fs.statSync(path.join(recordingsDir, f)).mtime.getTime(),
-        path: `/recordings/${f}`,
-      }))
-      .sort((a, b) => b.timestamp - a.timestamp); // newest first
-
-    res.json({
-      screenshots: files,
-      count: files.length,
-    });
-  } catch (err) {
-    console.error("Error in /api/screenshots:", err);
-    res.status(500).json({ error: "Failed to get screenshots" });
-  }
-});
 
 // Function to generate a signature for authentication
 function generateSignature(CLIENT_ID, meetingUuid, streamId, CLIENT_SECRET) {
@@ -559,8 +362,221 @@ function broadcastToFrontendClients(message) {
   }
 }
 
+app.use(
+  cors({
+    origin: "*", // Or specify your frontend origin: 'http://localhost:9876'
+    methods: ["GET", "POST", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  }),
+);
+
+// Middleware to parse JSON bodies in incoming requests
+app.use(express.json());
+
+// Map to keep track of active WebSocket connections and audio chunks
+const activeConnections = new Map();
+
+app.get("/", (_req, res) => {
+  res.sendFile(path.join(__dirname, "public", "index.html"));
+});
+
+// Serve the frontend page for Zoom iframe
+app.get("/home", (_req, res) => {
+  res.sendFile(path.join(__dirname, "public", "home.html"));
+});
+
+// Handle POST requests to the webhook endpoint
+
+app.post(WEBHOOK_PATH, (req, res) => {
+  console.log("RTMS Webhook received:", JSON.stringify(req.body, null, 2));
+  const { event, payload } = req.body;
+
+  // Handle URL validation event
+  if (event === "endpoint.url_validation" && payload?.plainToken) {
+    // Generate a hash for URL validation using the plainToken and a secret token
+    const hash = crypto
+      .createHmac("sha256", ZOOM_SECRET_TOKEN)
+      .update(payload.plainToken)
+      .digest("hex");
+    console.log("Responding to URL validation challenge");
+    return res.json({
+      plainToken: payload.plainToken,
+      encryptedToken: hash,
+    });
+  }
+
+  // Handle RTMS started event
+  if (event === "meeting.rtms_started") {
+    console.log("RTMS Started event received");
+    const { meeting_uuid, rtms_stream_id, server_urls } = payload;
+    // Initiate connection to the signaling WebSocket server
+    connectToSignalingWebSocket(meeting_uuid, rtms_stream_id, server_urls);
+  }
+
+  // Handle RTMS stopped event
+  if (event === "meeting.rtms_stopped") {
+    console.log("RTMS Stopped event received");
+    const { meeting_uuid } = payload;
+
+    // Close all active WebSocket connections for the given meeting UUID
+    if (activeConnections.has(meeting_uuid)) {
+      const connections = activeConnections.get(meeting_uuid);
+      for (const conn of Object.values(connections)) {
+        if (conn && typeof conn.close === "function") {
+          conn.close();
+        }
+      }
+      activeConnections.delete(meeting_uuid);
+    }
+  }
+
+  // Respond with HTTP 200 status
+  res.sendStatus(200);
+});
+
+// New API endpoint to ask LLM with transcript
+app.post("/api/ask-kb", async (req, res) => {
+  const { question } = req.body;
+  if (!question || typeof question !== "string") {
+    return res.status(400).json({ error: "Missing or invalid question" });
+  }
+  try {
+    const answer = await askLLMWithTranscript(question);
+    res.json({ answer });
+  } catch (err) {
+    console.error("Error in /api/ask-kb:", err);
+    res.status(500).json({ error: "Failed to get LLM response" });
+  }
+});
+
+// New API endpoint to get the latest image from the recordings folder
+app.get("/api/latest-image", async (_req, res) => {
+  try {
+    const recordingsDir = path.resolve("recordings");
+    if (!fs.existsSync(recordingsDir)) {
+      return res.status(404).json({ error: "No recordings directory found" });
+    }
+    // Get all jpg and png files
+    const files = fs
+      .readdirSync(recordingsDir)
+      .filter((f) => f.endsWith(".jpg") || f.endsWith(".png"))
+      .map((f) => ({
+        name: f,
+        time: fs.statSync(path.join(recordingsDir, f)).mtime.getTime(),
+      }))
+      .sort((a, b) => b.time - a.time); // newest first
+    if (files.length === 0) {
+      return res.status(404).json({ error: "No image files found" });
+    }
+    const latestFile = files[0].name;
+    const filePath = path.join(recordingsDir, latestFile);
+    const fileBuffer = fs.readFileSync(filePath);
+    const ext = latestFile.endsWith(".png") ? "png" : "jpeg";
+    const dataUrl = `data:image/${ext};base64,${fileBuffer.toString("base64")}`;
+    res.json({
+      id: latestFile,
+      dataUrl,
+      timestamp: files[0].time,
+    });
+  } catch (err) {
+    console.error("Error in /api/latest-image:", err);
+    res.status(500).json({ error: "Failed to get latest image" });
+  }
+});
+
+// New API endpoint to extract todos using OpenRouter JSON mode
+app.post("/api/extract-todos", async (req, res) => {
+  const { input } = req.body;
+  if (!input || typeof input !== "string") {
+    return res.status(400).json({ error: "Missing or invalid input" });
+  }
+  try {
+    const todos = await extractTodosWithOpenRouter(input);
+    res.json({ todos });
+  } catch (err) {
+    console.error("Error in /api/extract-todos:", err);
+    res.status(500).json({ error: "Failed to extract todos" });
+  }
+});
+
+// New API endpoint for direct LLM call via OpenRouter
+app.post("/api/llm-direct", async (req, res) => {
+  const { message, model } = req.body;
+  if (!message || typeof message !== "string") {
+    return res.status(400).json({ error: "Missing or invalid message" });
+  }
+  try {
+    // Dynamically import to avoid circular dependency if any
+    const { chatWithOpenRouter } = await import("./chatWithOpenrouter.js");
+    const llmResponse = await chatWithOpenRouter(message, model);
+    res.json({ response: llmResponse });
+  } catch (err) {
+    console.error("Error in /api/llm-direct:", err);
+    res.status(500).json({ error: "Failed to get LLM response" });
+  }
+});
+
+// New API endpoint to get all stored transcripts
+app.get("/api/transcripts", async (_req, res) => {
+  try {
+    res.json({
+      transcripts: storedTranscripts,
+      count: storedTranscripts.length,
+    });
+  } catch (err) {
+    console.error("Error in /api/transcripts:", err);
+    res.status(500).json({ error: "Failed to get transcripts" });
+  }
+});
+
+// New API endpoint to get all screenshots
+app.get("/api/screenshots", async (_req, res) => {
+  try {
+    const recordingsDir = path.resolve("recordings");
+    if (!fs.existsSync(recordingsDir)) {
+      return res.status(404).json({ error: "No recordings directory found" });
+    }
+
+    // Get all jpg and png files
+    const files = fs
+      .readdirSync(recordingsDir)
+      .filter((f) => f.endsWith(".jpg") || f.endsWith(".png"))
+      .map((f) => ({
+        name: f,
+        timestamp: fs.statSync(path.join(recordingsDir, f)).mtime.getTime(),
+        path: `/recordings/${f}`,
+      }))
+      .sort((a, b) => b.timestamp - a.timestamp); // newest first
+
+    res.json({
+      screenshots: files,
+      count: files.length,
+    });
+  } catch (err) {
+    console.error("Error in /api/screenshots:", err);
+    res.status(500).json({ error: "Failed to get screenshots" });
+  }
+// Add API endpoint to verify todos based on transcript
+app.post("/api/verify-todos", (req, res) => {
+  const { transcript, todos } = req.body;
+  if (!Array.isArray(transcript) || !Array.isArray(todos)) {
+    return res.status(400).json({ error: "transcript and todos must be arrays" });
+  }
+
+  // Mark todo as done if its text is mentioned in any transcript line (case-insensitive)
+  const updatedTodos = todos.map((todo) => {
+    const todoText = todo.text?.toLowerCase() || "";
+    const mentioned = transcript.some(
+      (line) => typeof line === "string" && line.toLowerCase().includes(todoText),
+    );
+    return { ...todo, done: mentioned };
+  });
+
+  res.json({ todos: updatedTodos });
+});
 server.listen(port, () => {
   console.log(`Server running at http://localhost:${port}`);
   console.log(`Frontend WebSocket available at ws://localhost:${port}/ws`);
   console.log(`Webhook endpoint available at http://localhost:${port}${WEBHOOK_PATH}`);
 });
+

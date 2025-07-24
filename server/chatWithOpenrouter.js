@@ -2,7 +2,6 @@
 import OpenAI from "openai";
 import dotenv from "dotenv";
 dotenv.config();
-
 // Set up OpenAI client with OpenRouter endpoint
 const openai = new OpenAI({
   apiKey: process.env.OPENROUTER_API_KEY,

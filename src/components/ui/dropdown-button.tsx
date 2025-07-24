@@ -42,7 +42,7 @@ export function DropdownButton({
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: -10, scale: 0.95 }}
           transition={{ type: "spring", stiffness: 300, damping: 30 }}
-          className="absolute top-full left-0 mt-2 w-full bg-background/10 border border-border/10 rounded-lg shadow-xl z-50 max-h-180 overflow-y-auto"
+          className="absolute top-full left-0 mt-2 w-full bg-background/10 border border-border rounded-lg shadow-xl z-50 max-h-180 overflow-y-auto"
         >
           <div className="p-2">{children}</div>
         </motion.div>
