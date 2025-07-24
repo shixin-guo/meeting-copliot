@@ -32,6 +32,7 @@
         "noExplicitAny": "off"
       },
       "correctness": {
+        "useExhaustiveDependencies": "off",
         "recommended": true,
         "noUndeclaredVariables": "error",
         "noUnusedVariables": {

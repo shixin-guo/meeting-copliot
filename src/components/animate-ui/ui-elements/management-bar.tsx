@@ -18,11 +18,11 @@ import { type FormEventHandler, useState, useRef, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ScreenshotList } from "@/components/ui/screenshot-list";
-import { SentimentChart } from "@/components/ui/sentiment-chart";
-import { ChartRadarLabelCustom } from "@/components/chart-radar-label-custom";
+import { InsightSentiment } from "@/components/ui/insight-sentiment";
+import { InsightTopic } from "@/components/ui/insight-topic";
 import { DropdownButton } from "@/components/ui/dropdown-button";
 import { Toggle } from "@/components/ui/toggle";
-import { Tabs } from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 
 const BUTTON_MOTION_CONFIG = {
   initial: "rest",
@@ -37,8 +37,6 @@ const BUTTON_MOTION_CONFIG = {
   },
   transition: { type: "spring", stiffness: 250, damping: 25 },
 } as const;
-
-
 
 interface ManagementBarProps {
   onScreenshotTaken?: (screenshot: { id: string; dataUrl: string; timestamp: Date }) => void;
@@ -91,8 +89,6 @@ function ManagementBar({
     liveInsight: useRef<HTMLButtonElement>(null),
   };
 
-
-
   // Close dropdown when clicking outside any open dropdown and its button
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -121,7 +117,12 @@ function ManagementBar({
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, [openDropdown]);
+  }, [
+    openDropdown,
+    dropdownButtonRefs.liveInsight.current,
+    dropdownButtonRefs[openDropdown]?.current,
+    dropdownRefs[openDropdown]?.current,
+  ]);
 
   const captureScreenshot = async () => {
     if (isCapturing || !onScreenshotTaken) {
@@ -228,7 +229,6 @@ function ManagementBar({
               <span className="bar bar3" />
             </span>
             <span className="whitespace-nowrap ml-2">Live Insight</span>
-
           </button>
           {openDropdown === "liveInsight" && (
             <motion.div
@@ -237,11 +237,17 @@ function ManagementBar({
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: -10, scale: 0.95 }}
               transition={{ type: "spring", stiffness: 300, damping: 30 }}
-              className="absolute left-0 top-full mt-2 w-full bg-background/30  border border-border/10 rounded-lg shadow-xl z-50 max-h-180 overflow-y-auto"
+              className="absolute left-0 top-full mt-2 w-full bg-background/30  border border-border rounded-lg shadow-xl z-50 max-h-180 overflow-y-auto"
             >
-              <div className="space-y-6">
-                <SentimentChart />
-                <ChartRadarLabelCustom />
+              <div className="flex gap-2 flex-row">
+                <div>
+                  <div className="font-normal text-sm m-4 mb-0">Sentiment Score</div>
+                  <InsightSentiment />
+                </div>
+                <div>
+                  <div className="font-normal text-sm m-4 mb-0">Competitor Mentioned</div>
+                  <InsightTopic />
+                </div>
               </div>
             </motion.div>
           )}
@@ -250,14 +256,54 @@ function ManagementBar({
           {/* Todo Progress Button */}
           <div ref={dropdownButtonRefs.todo} style={{ display: "inline-block" }}>
             <DropdownButton
-              label={`Actions (${finishedCount} / ${totalCount})`}
+              label={`Actions Goal: ${finishedCount}/${totalCount}`}
               isOpen={openDropdown === "todo"}
               onToggle={() => setOpenDropdown(openDropdown === "todo" ? null : "todo")}
               ariaLabel="Todo Progress"
             >
               <div ref={dropdownRefs.todo}>
                 {totalCount === 0 ? (
-                  ""
+                  <div className="p-8 text-center text-gray-500 dark:text-gray-400 flex flex-col items-center justify-center">
+                    {/* Robot icon for AI-powered todo list */}
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="mx-auto mb-4 opacity-50"
+                      width="48"
+                      height="48"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <rect
+                        x="5"
+                        y="7"
+                        width="14"
+                        height="10"
+                        rx="3"
+                        strokeWidth="2"
+                        stroke="currentColor"
+                        fill="none"
+                      />
+                      <rect
+                        x="9"
+                        y="2"
+                        width="6"
+                        height="4"
+                        rx="1"
+                        strokeWidth="2"
+                        stroke="currentColor"
+                        fill="none"
+                      />
+                      <circle cx="8.5" cy="12" r="1" fill="currentColor" />
+                      <circle cx="15.5" cy="12" r="1" fill="currentColor" />
+                      <path d="M8 17v2m8-2v2" strokeWidth="2" stroke="currentColor" />
+                    </svg>
+                    <p>AI-powered real-time todo list</p>
+                    <p className="text-sm mt-2">
+                      Task completion status is automatically updated by AI. Add a todo to try it
+                      out!
+                    </p>
+                  </div>
                 ) : (
                   <ul className="space-y-2">
                     {todos.map((todo) => (
@@ -313,44 +359,48 @@ function ManagementBar({
               ariaLabel="Analytics"
             >
               <div ref={dropdownRefs.analytics}>
-                <Tabs
-                  tabs={[
-                    {
-                      label: "Transcript",
-                      content: (
-                        <div>
-                          {transcripts.length === 0 ? (
-                            <div className="p-8 text-center text-gray-500 dark:text-gray-400 flex flex-col items-center justify-center">
-                              {/* Muted microphone icon for no transcript */}
-                              <svg xmlns="http://www.w3.org/2000/svg" className="mx-auto mb-4 opacity-50" width="48" height="48" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19h6m-3 0v-1m-4-4V9a4 4 0 118 0v5m-8 0a4 4 0 008 0m-8 0v1a4 4 0 008 0v-1m-8 0L4 21m16-2l-2-2" /></svg>
-                              <p>No transcript yet</p>
-                              <p className="text-sm mt-2">Transcripts will appear here when available.</p>
-                            </div>
-                          ) : (
-                            <div className="space-y-1 font-mono text-xs">
-                              {transcripts.map((line, idx) => (
-                                <div key={idx + line}>{line}</div>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                      ),
-                    },
-                    {
-                      label: "Screenshots",
-                      content: (
-                        <div>
-                          <div>
-                            <ScreenshotList
-                              screenshots={screenshots}
-                            />
-                          </div>
-                        </div>
-                      ),
-                    },
-                  ]}
-                  className="w-full"
-                />
+                <Tabs defaultValue="transcript" className="w-full">
+                  <TabsList>
+                    <TabsTrigger value="transcript">Transcript</TabsTrigger>
+                    <TabsTrigger value="screenshots">Screenshots</TabsTrigger>
+                  </TabsList>
+                  <TabsContent value="transcript">
+                    {transcripts.length === 0 ? (
+                      <div className="p-8 text-center text-gray-500 dark:text-gray-400 flex flex-col items-center justify-center">
+                        {/* Muted microphone icon for no transcript */}
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          className="mx-auto mb-4 opacity-50"
+                          width="48"
+                          height="48"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M9 19h6m-3 0v-1m-4-4V9a4 4 0 118 0v5m-8 0a4 4 0 008 0m-8 0v1a4 4 0 008 0v-1m-8 0L4 21m16-2l-2-2"
+                          />
+                        </svg>
+                        <p>No transcript yet</p>
+                        <p className="text-sm mt-2">Transcripts will appear here when available.</p>
+                      </div>
+                    ) : (
+                      <div className="space-y-1 font-mono text-xs">
+                        {transcripts.map((line, idx) => (
+                          <div key={idx + line}>{line}</div>
+                        ))}
+                      </div>
+                    )}
+                  </TabsContent>
+                  <TabsContent value="screenshots">
+                    <div>
+                      <ScreenshotList screenshots={screenshots} />
+                    </div>
+                  </TabsContent>
+                </Tabs>
               </div>
             </DropdownButton>
           </div>
@@ -364,10 +414,10 @@ function ManagementBar({
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: -10, scale: 0.95 }}
                 transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                className="absolute top-full left-0 mt-2 w-full bg-background/30  border border-border/10 rounded-lg shadow-xl z-50"
+                className="absolute top-full left-0 mt-2 w-full bg-background/30  border border-border rounded-lg shadow-xl z-50"
               >
                 <div className="p-2">
-                  <AIInput onSubmit={handleAskSubmit}>
+                  <AIInput onSubmit={handleAskSubmit} className="rounded-lg">
                     <AIInputTextarea
                       onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
                         setText(e.target.value)

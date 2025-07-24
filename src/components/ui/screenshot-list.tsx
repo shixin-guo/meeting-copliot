@@ -28,10 +28,12 @@ export function ScreenshotList({ screenshots }: ScreenshotListProps) {
   const formatDurationSincePageLoad = (timestamp: Date) => {
     const now = pageLoadTime;
     let diff = Math.floor((now.getTime() - new Date(timestamp).getTime()) / 1000); // seconds
-    if (diff < 0) diff = 0;
-    const hours = String(Math.floor(diff / 3600)).padStart(2, '0');
-    const minutes = String(Math.floor((diff % 3600) / 60)).padStart(2, '0');
-    const seconds = String(diff % 60).padStart(2, '0');
+    if (diff < 0) {
+      diff = 0;
+    }
+    const hours = String(Math.floor(diff / 3600)).padStart(2, "0");
+    const minutes = String(Math.floor((diff % 3600) / 60)).padStart(2, "0");
+    const seconds = String(diff % 60).padStart(2, "0");
     return `${hours}:${minutes}:${seconds}`;
   };
 
@@ -52,10 +54,9 @@ export function ScreenshotList({ screenshots }: ScreenshotListProps) {
 
   const toggleExpand = (id: string) => {
     setExpandedIds((prev) =>
-      prev.includes(id) ? prev.filter((eid) => eid !== id) : [...prev, id]
+      prev.includes(id) ? prev.filter((eid) => eid !== id) : [...prev, id],
     );
   };
-
 
   return (
     <>
@@ -73,10 +74,7 @@ export function ScreenshotList({ screenshots }: ScreenshotListProps) {
           ) : (
             <div className="">
               {screenshots.map((screenshot) => (
-                <div
-                  key={screenshot.id}
-                  className="hover:shadow-md transition-shadow"
-                >
+                <div key={screenshot.id} className="hover:shadow-md transition-shadow">
                   <div className="flex items-center justify-between">
                     <div className="text-md font-bold text-gray-600 dark:text-gray-300">
                       {formatDurationSincePageLoad(screenshot.timestamp)}
@@ -93,25 +91,32 @@ export function ScreenshotList({ screenshots }: ScreenshotListProps) {
                     {screenshot.ocrResult && (
                       <div className="relative">
                         <div
-                          ref={el => (ocrRefs.current[screenshot.id] = el)}
+                          ref={(el) => (ocrRefs.current[screenshot.id] = el)}
                           className={`whitespace-pre-wrap mt-1 text-sm text-gray-800 dark:text-gray-200 bg-gray-100 dark:bg-gray-900 rounded-b-md p-3 transition-all duration-200`}
                           style={{
-                            maxHeight: expandedIds.includes(screenshot.id) ? 'none' : '52px',
-                            overflow: expandedIds.includes(screenshot.id) ? 'visible' : 'hidden',
-                            position: 'relative',
-                            display: 'block',
-                            cursor: overflowIds.includes(screenshot.id) ? 'pointer' : 'default',
+                            maxHeight: expandedIds.includes(screenshot.id) ? "none" : "52px",
+                            overflow: expandedIds.includes(screenshot.id) ? "visible" : "hidden",
+                            position: "relative",
+                            display: "block",
+                            cursor: overflowIds.includes(screenshot.id) ? "pointer" : "default",
                           }}
-                          onClick={overflowIds.includes(screenshot.id) ? () => toggleExpand(screenshot.id) : undefined}
+                          onClick={
+                            overflowIds.includes(screenshot.id)
+                              ? () => toggleExpand(screenshot.id)
+                              : undefined
+                          }
                         >
                           <AIResponse>{removeJsonTags(screenshot.ocrResult)}</AIResponse>
                         </div>
                         {overflowIds.includes(screenshot.id) && (
                           <button
                             className="absolute right-2 bottom-[15px] text-xs text-blue-500 bg-white/80 dark:bg-gray-900/80 p-1 rounded shadow hover:bg-blue-100 dark:hover:bg-gray-800 z-10 flex items-center justify-center"
-                            onClick={e => { e.stopPropagation(); toggleExpand(screenshot.id); }}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              toggleExpand(screenshot.id);
+                            }}
                             type="button"
-                            aria-label={expandedIds.includes(screenshot.id) ? 'Collapse' : 'Expand'}
+                            aria-label={expandedIds.includes(screenshot.id) ? "Collapse" : "Expand"}
                           >
                             {expandedIds.includes(screenshot.id) ? (
                               <ChevronUp size={16} />
