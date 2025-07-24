@@ -82,13 +82,6 @@ interface MeetingData {
   title: string;
   date: Date;
   participants: string[];
-  transcripts: string[];
-  screenshots: Array<{
-    id: string;
-    dataUrl: string;
-    timestamp: Date;
-    ocrResult?: string;
-  }>;
   summary?: string;
 }
 
@@ -144,39 +137,39 @@ const PostMeetingFollowUp: React.FC<PostMeetingFollowUpProps> = ({ meetingData }
   // Screenshot search state
   const [screenshotSearchTerm, setScreenshotSearchTerm] = useState("");
 
-  // Mock transcript data
-  const mockTranscripts = [
-    {
-      id: 1,
-      title: "Segment 1 - Opening (00:00 - 02:30)",
-      content:
-        "John Smith: Good morning everyone, welcome to our quarterly product review meeting. I'm John Smith, Product Manager, and I'll be leading today's discussion. Let me start by introducing our team members who are joining us today.",
-    },
-    {
-      id: 2,
-      title: "Segment 2 - Team Introductions (02:30 - 05:15)",
-      content:
-        "Sarah Johnson: Hi everyone, I'm Sarah Johnson, Senior Developer. I've been working on the new authentication system and I'm excited to share our progress with you all. Mike Chen: Hello, Mike Chen here, UX Designer. I've been focusing on improving the user interface based on our recent user feedback sessions.",
-    },
-    {
-      id: 3,
-      title: "Segment 3 - Q1 Review (05:15 - 12:45)",
-      content:
-        "John Smith: Let's dive into our Q1 achievements. We successfully launched the new dashboard feature with a 95% user satisfaction rate. Sarah, could you walk us through the technical implementation? Sarah Johnson: Absolutely. We implemented a microservices architecture that improved our response time by 40%. The new caching layer has been particularly effective in handling peak traffic.",
-    },
-    {
-      id: 4,
-      title: "Segment 4 - Q2 Planning (12:45 - 18:20)",
-      content:
-        "John Smith: For Q2, we're planning to launch the mobile app beta. Mike, what are the key design considerations we need to address? Mike Chen: We need to focus on responsive design and ensure the mobile experience is as smooth as desktop. I've identified three main areas: navigation optimization, touch interactions, and offline functionality.",
-    },
-    {
-      id: 5,
-      title: "Segment 5 - Action Items (18:20 - 22:00)",
-      content:
-        "John Smith: Let's summarize our action items. Sarah will complete the API documentation by next Friday. Mike will deliver the mobile wireframes by Wednesday. I'll schedule the stakeholder review for next week.",
-    },
-  ];
+  // // Mock transcript data
+  // const mockTranscripts = [
+  //   {
+  //     id: 1,
+  //     title: "Segment 1 - Opening (00:00 - 02:30)",
+  //     content:
+  //       "John Smith: Good morning everyone, welcome to our quarterly product review meeting. I'm John Smith, Product Manager, and I'll be leading today's discussion. Let me start by introducing our team members who are joining us today.",
+  //   },
+  //   {
+  //     id: 2,
+  //     title: "Segment 2 - Team Introductions (02:30 - 05:15)",
+  //     content:
+  //       "Sarah Johnson: Hi everyone, I'm Sarah Johnson, Senior Developer. I've been working on the new authentication system and I'm excited to share our progress with you all. Mike Chen: Hello, Mike Chen here, UX Designer. I've been focusing on improving the user interface based on our recent user feedback sessions.",
+  //   },
+  //   {
+  //     id: 3,
+  //     title: "Segment 3 - Q1 Review (05:15 - 12:45)",
+  //     content:
+  //       "John Smith: Let's dive into our Q1 achievements. We successfully launched the new dashboard feature with a 95% user satisfaction rate. Sarah, could you walk us through the technical implementation? Sarah Johnson: Absolutely. We implemented a microservices architecture that improved our response time by 40%. The new caching layer has been particularly effective in handling peak traffic.",
+  //   },
+  //   {
+  //     id: 4,
+  //     title: "Segment 4 - Q2 Planning (12:45 - 18:20)",
+  //     content:
+  //       "John Smith: For Q2, we're planning to launch the mobile app beta. Mike, what are the key design considerations we need to address? Mike Chen: We need to focus on responsive design and ensure the mobile experience is as smooth as desktop. I've identified three main areas: navigation optimization, touch interactions, and offline functionality.",
+  //   },
+  //   {
+  //     id: 5,
+  //     title: "Segment 5 - Action Items (18:20 - 22:00)",
+  //     content:
+  //       "John Smith: Let's summarize our action items. Sarah will complete the API documentation by next Friday. Mike will deliver the mobile wireframes by Wednesday. I'll schedule the stakeholder review for next week.",
+  //   },
+  // ];
 
   // Mock screenshot data
   const mockScreenshots = [
@@ -213,6 +206,21 @@ const PostMeetingFollowUp: React.FC<PostMeetingFollowUpProps> = ({ meetingData }
       label: "Feedback Dashboard",
     },
   ];
+  // Remove mockTranscripts and mockScreenshots, add state for API data
+  const [transcripts, setTranscripts] = useState<
+    Array<{ id: string; title: string; content: string }>
+  >([]);
+  const [screenshots, setScreenshots] = useState<
+    Array<{
+      id: string | number;
+      title: string;
+      ocrText: string;
+      gradient: string;
+      label: string;
+      dataUrl?: string;
+      timestamp?: number;
+    }>
+  >([]);
 
   // Mock comments data
   const mockComments: {
@@ -299,15 +307,76 @@ const PostMeetingFollowUp: React.FC<PostMeetingFollowUpProps> = ({ meetingData }
     );
   };
 
+  // Fetch transcripts and screenshots from API on mount
+  useEffect(() => {
+    // Fetch transcripts
+    fetch("/api/transcripts")
+      .then((res) => res.json())
+      .then((data) => {
+        if (Array.isArray(data.transcripts)) {
+          setTranscripts(
+            data.transcripts.map(
+              (
+                t: { timestamp: string | number; speaker: string; content: string },
+                idx: number,
+              ) => ({
+                id: t.timestamp ? String(t.timestamp) : String(idx),
+                title:
+                  t.speaker && t.timestamp
+                    ? `${t.speaker} - ${new Date(t.timestamp).toLocaleTimeString()}`
+                    : `Transcript Segment ${idx + 1}`,
+                content: t.content || "",
+              }),
+            ),
+          );
+        }
+      })
+      .catch(() => {
+        // fallback to mockTranscripts if API fails
+        // setTranscripts(mockTranscripts);
+      });
+
+    // Fetch screenshots
+    fetch("/api/screenshots")
+      .then((res) => res.json())
+      .then((data) => {
+        if (Array.isArray(data.screenshots)) {
+          setScreenshots(
+            data.screenshots.map(
+              (s: { name: string; timestamp: string | number; path: string }, idx: number) => {
+                // Try to find a matching mock for ocrText, gradient, label
+                const mock = mockScreenshots[idx] || {};
+                return {
+                  id: s.name || String(idx),
+                  title: s.timestamp
+                    ? `Screenshot - ${new Date(s.timestamp).toLocaleTimeString()}`
+                    : mock.title || `Screenshot ${idx + 1}`,
+                  ocrText: mock.ocrText || "No OCR text available.",
+                  gradient: mock.gradient || "from-blue-500 to-purple-600",
+                  label: mock.label || "Screenshot",
+                  dataUrl: s.path ? s.path : undefined,
+                  timestamp: s.timestamp,
+                };
+              },
+            ),
+          );
+        }
+      })
+      .catch(() => {
+        // fallback to mockScreenshots if API fails
+        setScreenshots(mockScreenshots);
+      });
+  }, []);
+
   // Filter transcripts based on search term
-  const filteredTranscripts = mockTranscripts.filter(
+  const filteredTranscripts = transcripts.filter(
     (transcript) =>
       transcript.content.toLowerCase().includes(transcriptSearchTerm.toLowerCase()) ||
       transcript.title.toLowerCase().includes(transcriptSearchTerm.toLowerCase()),
   );
 
   // Filter screenshots based on search term
-  const filteredScreenshots = mockScreenshots.filter(
+  const filteredScreenshots = screenshots.filter(
     (screenshot) =>
       screenshot.ocrText.toLowerCase().includes(screenshotSearchTerm.toLowerCase()) ||
       screenshot.title.toLowerCase().includes(screenshotSearchTerm.toLowerCase()),
@@ -325,7 +394,7 @@ const PostMeetingFollowUp: React.FC<PostMeetingFollowUpProps> = ({ meetingData }
       const MODEL = "google/gemini-2.0-flash-001";
 
       // Use mockTranscripts and mockScreenshots for the prompt
-      const transcriptText = mockTranscripts.map((t) => t.content).join("\n");
+      const transcriptText = transcripts.map((t) => t.content).join("\n");
 
       const prompt = `Based on the following meeting information, generate a professional follow-up email:
 
@@ -391,11 +460,11 @@ Date: ${meetingData.date.toLocaleDateString()}
 Participants: ${meetingData.participants.join(", ")}
 
 Transcripts:
-${meetingData.transcripts.join("\n")}
+${transcripts.join("\n")}
 
 OCR Results from Screenshots:
-${meetingData.screenshots
-  .map((s) => s.ocrResult)
+${screenshots
+  .map((s) => s.ocrText)
   .filter(Boolean)
   .join("\n")}
 
@@ -474,11 +543,6 @@ Format as markdown with clear sections.`;
         meetingDate: meetingData.date,
         participants: meetingData.participants,
         summary: meetingSummary,
-        transcripts: meetingData.transcripts,
-        attachments: meetingData.screenshots.map((s) => ({
-          name: `Screenshot_${s.timestamp.toISOString()}`,
-          content: s.ocrResult,
-        })),
       };
 
       console.log("Syncing to Salesforce:", salesforceData);
@@ -502,8 +566,6 @@ Format as markdown with clear sections.`;
       const documentData = {
         title: `${meetingData.title} - Meeting Notes`,
         content: meetingSummary,
-        transcripts: meetingData.transcripts,
-        screenshots: meetingData.screenshots,
       };
 
       console.log("Syncing to Documents:", documentData);
@@ -576,7 +638,7 @@ Format as markdown with clear sections.`;
   const handleClearInput = () => setInput("");
 
   return (
-    <div className="max-w-7xl mx-auto p-6 space-y-6">
+    <div className="max-w-7xl mx-auto p-6 space-y-6 z-60">
       {/* Header with title and action buttons */}
       <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4 mb-2">
         <div className="flex-1">
@@ -608,7 +670,7 @@ Format as markdown with clear sections.`;
           <Dialog>
             <DialogTrigger asChild>
               <Button variant="outline" size="sm" className="flex items-center gap-2">
-                <Sparkles className="w-4 h-4" />
+                <Sparkles className="w-4 h-4 text-blue-500" />
                 Ask About This Meeting
               </Button>
             </DialogTrigger>
@@ -768,7 +830,7 @@ Format as markdown with clear sections.`;
                     variant="ghost"
                     className="absolute bottom-2 left-2 z-10"
                   >
-                    <Sparkles className="w-4 h-4 mr-2" />
+                    <Sparkles className="w-4 h-4 mr-2 text-blue-500" />
                     {isGeneratingEmail ? "Generating..." : "AI Generate"}
                   </Button>
                 </div>
@@ -1019,7 +1081,7 @@ Format as markdown with clear sections.`;
                 disabled={isGeneratingSummary}
                 variant="outline"
               >
-                <Sparkles className="w-4 h-4 mr-2" />
+                <Sparkles className="w-4 h-4 mr-2 text-blue-500" />
                 {isGeneratingSummary ? "Generating..." : "Regenerate"}
               </Button>
             </CardHeader>

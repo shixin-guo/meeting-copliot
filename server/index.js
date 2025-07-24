@@ -3,8 +3,6 @@ import crypto from "node:crypto";
 import WebSocket from "ws";
 import dotenv from "dotenv";
 import fs from "fs";
-import { exec } from "node:child_process";
-import { promisify } from "node:util";
 import path from "path";
 import { fileURLToPath } from "node:url";
 import http from "node:http";
@@ -24,7 +22,8 @@ dotenv.config();
 
 const app = express();
 const port = process.env.PORT || 3000;
-const execAsync = promisify(exec);
+
+const storedTranscripts = [];
 
 const ZOOM_SECRET_TOKEN = process.env.ZOOM_SECRET_TOKEN;
 const CLIENT_ID = process.env.ZM_CLIENT_ID;
@@ -184,7 +183,6 @@ app.post("/api/llm-direct", async (req, res) => {
     res.status(500).json({ error: "Failed to get LLM response" });
   }
 });
-
 // Add API endpoint to verify todos based on transcript
 app.post("/api/verify-todos", (req, res) => {
   const { transcript, todos } = req.body;
@@ -202,6 +200,48 @@ app.post("/api/verify-todos", (req, res) => {
   });
 
   res.json({ todos: updatedTodos });
+});
+
+// New API endpoint to get all stored transcripts
+app.get("/api/transcripts", async (_req, res) => {
+  try {
+    res.json({
+      transcripts: storedTranscripts,
+      count: storedTranscripts.length,
+    });
+  } catch (err) {
+    console.error("Error in /api/transcripts:", err);
+    res.status(500).json({ error: "Failed to get transcripts" });
+  }
+});
+
+// New API endpoint to get all screenshots
+app.get("/api/screenshots", async (_req, res) => {
+  try {
+    const recordingsDir = path.resolve("recordings");
+    if (!fs.existsSync(recordingsDir)) {
+      return res.status(404).json({ error: "No recordings directory found" });
+    }
+
+    // Get all jpg and png files
+    const files = fs
+      .readdirSync(recordingsDir)
+      .filter((f) => f.endsWith(".jpg") || f.endsWith(".png"))
+      .map((f) => ({
+        name: f,
+        timestamp: fs.statSync(path.join(recordingsDir, f)).mtime.getTime(),
+        path: `/recordings/${f}`,
+      }))
+      .sort((a, b) => b.timestamp - a.timestamp); // newest first
+
+    res.json({
+      screenshots: files,
+      count: files.length,
+    });
+  } catch (err) {
+    console.error("Error in /api/screenshots:", err);
+    res.status(500).json({ error: "Failed to get screenshots" });
+  }
 });
 
 // Function to generate a signature for authentication
@@ -441,7 +481,7 @@ function connectToMediaWebSocket(mediaUrl, meetingUuid, streamId, signalingSocke
             console.warn(`⚠️ Skipping small JPEG (${buffer.length} bytes)`);
             return;
           }
-          if (frameCounter <= 3) {
+          if (frameCounter <= 10) {
             console.log(`⏭️ Skipping initial JPEG frame #${frameCounter}`);
             return;
           }
@@ -464,6 +504,13 @@ function connectToMediaWebSocket(mediaUrl, meetingUuid, streamId, signalingSocke
       // Handle transcript data
       if (msg.msg_type === 17 && msg.content && msg.content.data) {
         console.log("Transcript data received");
+
+        const transcriptEntry = {
+          speaker: msg.content.user_name || "Unknown",
+          timestamp: Date.now(),
+          content: msg.content.data,
+        };
+        storedTranscripts.push(transcriptEntry);
 
         //    const result = await askLLMWithTranscript( msg.content.data);
 
