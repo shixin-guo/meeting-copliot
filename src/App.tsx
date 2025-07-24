@@ -17,6 +17,8 @@ import { Video, Sparkles, Copy, X, Sun, Moon } from "lucide-react";
 import MeetingAIInput from "@/components/ui/ask-ai-input";
 import { parseZoomMeetingLink } from "@/lib/utils";
 import PostMeetingFollowUp from "@/components/PostMeetingFollowUp";
+import RealtimeTodoList from "@/components/RealtimeTodoList";
+import TodoDemo from "@/components/TodoDemo";
 function App() {
   const client = ZoomMtgEmbedded.createClient();
 
@@ -229,7 +231,7 @@ function App() {
 
   // WebSocket for live transcript
   useEffect(() => {
-    const socket = new WebSocket("ws://localhost:3789/ws");
+    const socket = new WebSocket("ws://localhost:3000/ws");
     socket.onopen = () => {
       console.log("✅ WebSocket connected");
     };
@@ -262,6 +264,9 @@ function App() {
   // State for post-meeting follow-up
   const [showFollowUp, setShowFollowUp] = useState(false);
   const [meetingEnded, setMeetingEnded] = useState(false);
+  
+  // State for demo mode
+  const [showDemo, setShowDemo] = useState(false);
   async function startMeeting(signature: string) {
     const meetingSDKElement = document.getElementById("meetingSDKElement")!;
     try {
@@ -336,8 +341,16 @@ function App() {
 
   return (
     <div className="App min-h-screen bg-background">
-      {/* Dark mode toggle button 右上角 */}
-      <div className="fixed top-4 right-4 z-50">
+      {/* Top right controls */}
+      <div className="fixed top-4 right-4 z-50 flex gap-2">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setShowDemo(!showDemo)}
+          className="bg-background/90 backdrop-blur-sm"
+        >
+          {showDemo ? "Back to Meeting" : "Todo Demo"}
+        </Button>
         <Button
           variant="ghost"
           size="icon"
@@ -347,7 +360,9 @@ function App() {
           {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
         </Button>
       </div>
-      {showFollowUp ? (
+      {showDemo ? (
+        <TodoDemo />
+      ) : showFollowUp ? (
         <PostMeetingFollowUp 
           meetingData={mockMeetingData}
           onClose={() => setShowFollowUp(false)}
@@ -365,6 +380,9 @@ function App() {
                 screenshots={screenshots}
                 onDeleteScreenshot={handleDeleteScreenshot}
               />
+              
+              {/* Real-time AI Todo List */}
+              <RealtimeTodoList />
             </div>
 
           {/* Center Column */}

@@ -45,6 +45,13 @@ app.use(express.json());
 // Map to keep track of active WebSocket connections and audio chunks
 const activeConnections = new Map();
 
+// Todo-related variables for real-time processing
+let transcriptBuffer = [];
+let currentTodos = [];
+let lastTodoUpdate = Date.now();
+const TODO_UPDATE_INTERVAL = 10000; // Update todos every 10 seconds
+const TRANSCRIPT_BUFFER_SIZE = 5; // Process after 5 new transcript lines
+
 app.get("/", (_req, res) => {
   res.sendFile(path.join(__dirname, "public", "index.html"));
 });
@@ -446,7 +453,22 @@ function connectToMediaWebSocket(mediaUrl, meetingUuid, streamId, signalingSocke
       if (msg.msg_type === 17 && msg.content && msg.content.data) {
         console.log("Transcript data received");
 
-        //    const result = await askLLMWithTranscript( msg.content.data);
+        const transcriptData = {
+          content: msg.content.data,
+          user: msg.content.user_name,
+          timestamp: Date.now(),
+        };
+
+        // Add to transcript buffer for todo processing
+        transcriptBuffer.push(transcriptData.content);
+        
+        // Process todos if buffer is large enough or enough time has passed
+        const now = Date.now();
+        if (transcriptBuffer.length >= TRANSCRIPT_BUFFER_SIZE || 
+            (now - lastTodoUpdate) > TODO_UPDATE_INTERVAL) {
+          await processTodosFromTranscripts();
+          lastTodoUpdate = now;
+        }
 
         broadcastToFrontendClients({
           type: "transcript",
@@ -506,7 +528,138 @@ function broadcastToFrontendClients(message) {
       client.send(json);
     }
   }
+  }
+
+// New function: Process todos from transcript buffer
+async function processTodosFromTranscripts() {
+  if (transcriptBuffer.length === 0) return;
+  
+  try {
+    console.log("🔍 Processing todos from transcripts...");
+    
+    // Combine recent transcripts
+    const combinedTranscripts = transcriptBuffer.join(' ');
+    
+    // Extract todos using OpenRouter
+    const extractedTodos = await extractTodosWithOpenRouter(combinedTranscripts);
+    
+    // Merge with existing todos (avoid duplicates)
+    const newTodos = extractedTodos.filter(todo => 
+      !currentTodos.some(existingTodo => 
+        existingTodo.content.toLowerCase().includes(todo.toLowerCase()) ||
+        todo.toLowerCase().includes(existingTodo.content.toLowerCase())
+      )
+    );
+    
+    // Add new todos with proper structure
+    const todosToAdd = newTodos.map(todo => ({
+      id: `todo_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      content: todo,
+      completed: false,
+      timestamp: Date.now()
+    }));
+    
+    if (todosToAdd.length > 0) {
+      currentTodos = [...currentTodos, ...todosToAdd];
+      console.log(`✅ Added ${todosToAdd.length} new todos`);
+      
+      // Broadcast updated todos to all frontend clients
+      broadcastToFrontendClients({
+        type: "todos_update",
+        todos: currentTodos,
+        newTodos: todosToAdd
+      });
+    }
+    
+    // Clear transcript buffer after processing
+    transcriptBuffer = [];
+    
+  } catch (error) {
+    console.error("❌ Error processing todos:", error);
+  }
 }
+
+// New API endpoint to get current todos
+app.get("/api/current-todos", (req, res) => {
+  res.json({ todos: currentTodos });
+});
+
+// New API endpoint to update todo status
+app.post("/api/update-todo", (req, res) => {
+  const { todoId, completed } = req.body;
+  
+  const todoIndex = currentTodos.findIndex(todo => todo.id === todoId);
+  if (todoIndex !== -1) {
+    currentTodos[todoIndex].completed = completed;
+    
+    // Broadcast updated todos to all frontend clients
+    broadcastToFrontendClients({
+      type: "todos_update",
+      todos: currentTodos,
+      updatedTodo: currentTodos[todoIndex]
+    });
+    
+    res.json({ success: true, todo: currentTodos[todoIndex] });
+  } else {
+    res.status(404).json({ error: "Todo not found" });
+  }
+});
+
+// New API endpoint to clear todos
+app.post("/api/clear-todos", (req, res) => {
+  currentTodos = [];
+  broadcastToFrontendClients({
+    type: "todos_update",
+    todos: []
+  });
+  res.json({ success: true });
+});
+
+// Demo API endpoint to simulate transcript input for testing
+app.post("/api/simulate-transcript", async (req, res) => {
+  const { content, user } = req.body;
+  
+  if (!content || typeof content !== "string") {
+    return res.status(400).json({ error: "Missing or invalid content" });
+  }
+
+  try {
+    const transcriptData = {
+      content: content,
+      user: user || "Demo User",
+      timestamp: Date.now(),
+    };
+
+    // Add to transcript buffer for todo processing
+    transcriptBuffer.push(transcriptData.content);
+    
+    // Process todos if buffer is large enough or enough time has passed
+    const now = Date.now();
+    if (transcriptBuffer.length >= TRANSCRIPT_BUFFER_SIZE || 
+        (now - lastTodoUpdate) > TODO_UPDATE_INTERVAL) {
+      await processTodosFromTranscripts();
+      lastTodoUpdate = now;
+    }
+
+    // Broadcast transcript to frontend clients
+    broadcastToFrontendClients({
+      type: "transcript",
+      content: transcriptData.content,
+      user: transcriptData.user,
+      timestamp: transcriptData.timestamp,
+    });
+
+    res.json({ 
+      success: true, 
+      message: "Transcript processed successfully",
+      bufferSize: transcriptBuffer.length
+    });
+    
+  } catch (error) {
+    console.error("Error processing simulated transcript:", error);
+    res.status(500).json({ error: "Failed to process transcript" });
+  }
+});
 
 server.listen(port, () => {
   console.log(`Server running at http://localhost:${port}`);
