@@ -54,16 +54,20 @@ interface ManagementBarProps {
   onDeleteScreenshot: (id: string) => void;
 }
 
-const competitorTopics = CompetitorListData.map(item => item.topic.trim()).filter(Boolean);
+const competitorTopics = CompetitorListData.map((item) => item.topic.trim()).filter(Boolean);
 
 function highlightTopicsInContent(content: string) {
-  if (!content) { return content; }
+  if (!content) {
+    return content;
+  }
   let result = content;
-  competitorTopics.forEach(topic => {
-    if (!topic) { return; }
+  competitorTopics.forEach((topic) => {
+    if (!topic) {
+      return;
+    }
     // Escape RegExp special chars in topic
-    const safeTopic = topic.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    const regex = new RegExp(`(${safeTopic})`, 'gi');
+    const safeTopic = topic.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const regex = new RegExp(`(${safeTopic})`, "gi");
     result = result.replace(regex, '<span class="text-yellow-200 font-bold">$1</span>');
   });
   return result;
@@ -421,8 +425,10 @@ function ManagementBar({
                                 <>
                                   <div className="flex gap-2 justify-center items-center">
                                     <div className="flex flex-col items-center min-w-[40px]">
-                                      <Avatar className="w-6 h-6 rounded-sm" >
-                                        <AvatarFallback className="rounded-sm">{line.user?.[0] || "?"}</AvatarFallback>
+                                      <Avatar className="w-6 h-6 rounded-sm">
+                                        <AvatarFallback className="rounded-sm">
+                                          {line.user?.[0] || "?"}
+                                        </AvatarFallback>
                                       </Avatar>
                                     </div>
                                     <div className="flex-1">
@@ -432,10 +438,22 @@ function ManagementBar({
                                       </span>
                                     </div>
                                   </div>
-                                  <div className="ml-2 mt-1"><span dangerouslySetInnerHTML={{ __html: highlightTopicsInContent(line.content) }} /></div>
+                                  <div className="ml-2 mt-1">
+                                    <span
+                                      dangerouslySetInnerHTML={{
+                                        __html: highlightTopicsInContent(line.content),
+                                      }}
+                                    />
+                                  </div>
                                 </>
                               ) : (
-                                <div className="flex-1 ml-2 mt-1"><span dangerouslySetInnerHTML={{ __html: highlightTopicsInContent(line.content) }} /></div>
+                                <div className="flex-1 ml-2 mt-1">
+                                  <span
+                                    dangerouslySetInnerHTML={{
+                                      __html: highlightTopicsInContent(line.content),
+                                    }}
+                                  />
+                                </div>
                               )}
                             </div>
                           );
