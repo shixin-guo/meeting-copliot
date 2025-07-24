@@ -72,12 +72,10 @@ interface FollowUpAction {
 }
 
 interface PostMeetingFollowUpProps {
-  meetingId?: string;
   onClose?: () => void;
 }
 
 const PostMeetingFollowUp: React.FC<PostMeetingFollowUpProps> = ({ 
-  meetingId = 'current',
   onClose 
 }) => {
   const [meetingData, setMeetingData] = useState<MeetingData | null>(null);
@@ -112,7 +110,7 @@ const PostMeetingFollowUp: React.FC<PostMeetingFollowUpProps> = ({
       setLoading(true);
       setError(null);
       
-      const response = await fetch(`http://localhost:3000/api/meeting-data/${meetingId}`);
+      const response = await fetch(`http://localhost:3000/api/meeting-data`);
       
       if (!response.ok) {
         throw new Error(`Failed to fetch meeting data: ${response.statusText}`);
@@ -160,8 +158,7 @@ const PostMeetingFollowUp: React.FC<PostMeetingFollowUpProps> = ({
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          transcripts: meetingData.transcripts,
-          meetingId: meetingId
+          transcripts: meetingData.transcripts
         }),
       });
       
@@ -200,7 +197,7 @@ const PostMeetingFollowUp: React.FC<PostMeetingFollowUpProps> = ({
 
   useEffect(() => {
     fetchMeetingData();
-  }, [meetingId]);
+  }, []);
 
   // Auto-generate insights when meeting data is loaded
   useEffect(() => {

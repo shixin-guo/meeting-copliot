@@ -44,10 +44,15 @@ app.use(express.json());
 
 // Map to keep track of active WebSocket connections and audio chunks
 const activeConnections = new Map();
-// Store transcripts for each meeting
-const meetingTranscripts = new Map();
-// Store meeting metadata
-const meetingData = new Map();
+// Simple storage for the current meeting (POC - single meeting only)
+let currentTranscripts = [];
+let currentMeetingData = {
+  id: "current",
+  title: "Live Meeting Session",
+  date: new Date(),
+  participants: ["Meeting Participants"],
+  summary: null
+};
 
 app.get("/", (_req, res) => {
   res.sendFile(path.join(__dirname, "public", "index.html"));
@@ -190,13 +195,8 @@ app.post("/api/llm-direct", async (req, res) => {
 });
 
 // New API endpoint to get meeting data (transcripts and screenshots)
-app.get("/api/meeting-data/:meetingId?", async (req, res) => {
+app.get("/api/meeting-data", async (req, res) => {
   try {
-    const meetingId = req.params.meetingId || 'current';
-    
-    // Get transcripts
-    const transcripts = meetingTranscripts.get(meetingId) || [];
-    
     // Get all screenshots from recordings directory
     const recordingsDir = path.resolve("recordings");
     let screenshots = [];
@@ -224,19 +224,10 @@ app.get("/api/meeting-data/:meetingId?", async (req, res) => {
       screenshots = files;
     }
     
-    // Get meeting metadata or create default
-    const metadata = meetingData.get(meetingId) || {
-      id: meetingId,
-      title: "Live Meeting Session",
-      date: new Date(),
-      participants: ["Meeting Participants"]
-    };
-    
     res.json({
-      ...metadata,
-      transcripts: transcripts.map(t => t.content),
-      screenshots,
-      summary: metadata.summary || null
+      ...currentMeetingData,
+      transcripts: currentTranscripts.map(t => t.content),
+      screenshots
     });
   } catch (err) {
     console.error("Error in /api/meeting-data:", err);
@@ -246,7 +237,7 @@ app.get("/api/meeting-data/:meetingId?", async (req, res) => {
 
 // New API endpoint to generate meeting insights using AI
 app.post("/api/generate-meeting-insights", async (req, res) => {
-  const { transcripts, meetingId } = req.body;
+  const { transcripts } = req.body;
   
   if (!transcripts || !Array.isArray(transcripts)) {
     return res.status(400).json({ error: "Missing or invalid transcripts" });
@@ -286,22 +277,19 @@ Make sure the response is valid JSON format.`;
       // Try to parse the response as JSON
       const insights = JSON.parse(response);
       
-      // Store the insights with the meeting data
-      const meetingId_key = meetingId || 'current';
-      const existing = meetingData.get(meetingId_key) || {};
-      meetingData.set(meetingId_key, {
-        ...existing,
-        id: meetingId_key,
-        title: insights.meetingName || existing.title || "Live Meeting Session",
+      // Store the insights in the current meeting data
+      currentMeetingData = {
+        ...currentMeetingData,
+        title: insights.meetingName || currentMeetingData.title,
         topic: insights.meetingTopic,
         summary: insights.summary,
         nextSteps: insights.nextSteps,
         keyPoints: insights.keyPoints,
         participants: insights.participants && insights.participants.length > 0 
           ? insights.participants 
-          : existing.participants || ["Meeting Participants"],
-        date: existing.date || new Date()
-      });
+          : currentMeetingData.participants,
+        date: currentMeetingData.date || new Date()
+      };
       
       res.json(insights);
     } catch (parseError) {
@@ -583,13 +571,8 @@ function connectToMediaWebSocket(mediaUrl, meetingUuid, streamId, signalingSocke
       if (msg.msg_type === 17 && msg.content && msg.content.data) {
         console.log("Transcript data received");
 
-        // Store transcript data
-        const meetingId = 'current'; // You can extract this from meetingUuid if needed
-        if (!meetingTranscripts.has(meetingId)) {
-          meetingTranscripts.set(meetingId, []);
-        }
-        
-        meetingTranscripts.get(meetingId).push({
+        // Store transcript data in simple array
+        currentTranscripts.push({
           content: msg.content.data,
           user: msg.content.user_name,
           timestamp: Date.now()

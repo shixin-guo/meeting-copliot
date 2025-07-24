@@ -304,8 +304,7 @@ function App() {
     setShowFollowUp(true);
   };
 
-  // Meeting ID for the follow-up component (using 'current' as default)
-  const currentMeetingId = "current";
+  // POC: Single meeting only, no need for meeting ID
 
   // dark mode 切换
   const [isDark, setIsDark] = useState(() => {
@@ -341,7 +340,6 @@ function App() {
       </div>
       {showFollowUp ? (
         <PostMeetingFollowUp 
-          meetingId={currentMeetingId}
           onClose={() => setShowFollowUp(false)}
         />
       ) : (
