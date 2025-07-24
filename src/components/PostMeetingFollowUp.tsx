@@ -324,17 +324,18 @@ const PostMeetingFollowUp: React.FC<PostMeetingFollowUpProps> = ({ meetingData }
       const API_KEY = import.meta.env.VITE_OPENROUTER_API_KEY;
       const MODEL = "google/gemini-2.0-flash-001";
 
+      // Use mockTranscripts and mockScreenshots for the prompt
+      const transcriptText = mockTranscripts.map((t) => t.content).join("\n");
+
       const prompt = `Based on the following meeting information, generate a professional follow-up email:
 
 Meeting: ${meetingData.title}
 Date: ${meetingData.date.toLocaleDateString()}
 Participants: ${meetingData.participants.join(", ")}
 
-Transcripts:
-${meetingData.transcripts.join("\n")}
+Transcripts:\n${transcriptText}
 
-Summary:
-${meetingSummary}
+Summary:\n${meetingSummary}
 
 Please generate a professional follow-up email that includes:
 1. Thank you for attendance

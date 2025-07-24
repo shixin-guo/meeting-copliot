@@ -185,6 +185,25 @@ app.post("/api/llm-direct", async (req, res) => {
   }
 });
 
+// Add API endpoint to verify todos based on transcript
+app.post("/api/verify-todos", (req, res) => {
+  const { transcript, todos } = req.body;
+  if (!Array.isArray(transcript) || !Array.isArray(todos)) {
+    return res.status(400).json({ error: "transcript and todos must be arrays" });
+  }
+
+  // Mark todo as done if its text is mentioned in any transcript line (case-insensitive)
+  const updatedTodos = todos.map((todo) => {
+    const todoText = todo.text?.toLowerCase() || "";
+    const mentioned = transcript.some(
+      (line) => typeof line === "string" && line.toLowerCase().includes(todoText),
+    );
+    return { ...todo, done: mentioned };
+  });
+
+  res.json({ todos: updatedTodos });
+});
+
 // Function to generate a signature for authentication
 function generateSignature(CLIENT_ID, meetingUuid, streamId, CLIENT_SECRET) {
   console.log("Generating signature with parameters:");
