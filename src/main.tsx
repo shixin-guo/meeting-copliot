@@ -4,10 +4,10 @@ import App from "./App";
 import "./socket";
 import "./index.css";
 
-// Default dark mode
-if (typeof document !== "undefined") {
-  document.documentElement.classList.add("dark");
-}
+// // Default dark mode
+// if (typeof document !== "undefined") {
+//   document.documentElement.classList.add("dark");
+// }
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>

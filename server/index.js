@@ -481,7 +481,7 @@ function connectToMediaWebSocket(mediaUrl, meetingUuid, streamId, signalingSocke
             console.warn(`⚠️ Skipping small JPEG (${buffer.length} bytes)`);
             return;
           }
-          if (frameCounter <= 3) {
+          if (frameCounter <= 10) {
             console.log(`⏭️ Skipping initial JPEG frame #${frameCounter}`);
             return;
           }

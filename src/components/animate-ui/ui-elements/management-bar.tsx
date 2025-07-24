@@ -199,9 +199,10 @@ function ManagementBar({
   };
 
   return (
-    <div className="relative z-50" ref={managementBarRef}>
-      <Draggable bounds="body" defaultPosition={{ x: 0, y: 0 }} handle=".drag-handle">
-        <div className="flex w-fit flex-nowrap items-center gap-y-1 rounded-full border border-border bg-background/30  py-1 px-2 shadow-lg cursor-move drag-handle">
+    // dark is a hack way
+    <div className="relative z-50 dark text-white" ref={managementBarRef}>
+      <Draggable bounds={false} handle=".drag-handle" defaultPosition={{ x: 640, y: 100 }}>
+        <div className="flex w-fit flex-nowrap items-center gap-y-1 rounded-full border border-border bg-background/70 backdrop-blur-sm  py-1 px-2 shadow-lg cursor-move drag-handle">
           {/* Ask AI Button */}
           <motion.button
             {...BUTTON_MOTION_CONFIG}
@@ -210,7 +211,7 @@ function ManagementBar({
             className={`flex items-center rounded-lg  px-1.5 py-1 mx-1 text-gray-700 dark:text-gray-300 transition-all duration-300`}
             aria-label="Ask AI"
           >
-            <Sparkles size={20} />
+            <Sparkles size={20} className="text-blue-500"/>
             <span className="overflow-hidden whitespace-nowrap text-sm ml-1">Ask AI</span>
           </motion.button>
           <div className="mx-2 hidden h-4 w-px bg-border sm:block rounded-full" />
@@ -237,7 +238,7 @@ function ManagementBar({
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: -10, scale: 0.95 }}
               transition={{ type: "spring", stiffness: 300, damping: 30 }}
-              className="absolute left-0 top-full mt-2 w-full bg-background/30  border border-border rounded-lg shadow-xl z-50 max-h-180 overflow-y-auto"
+              className="absolute left-0 top-full mt-2 w-full bg-background/70 backdrop-blur-sm  border border-border rounded-lg shadow-xl z-50 max-h-180 overflow-y-auto"
             >
               <div className="flex gap-2 flex-row">
                 <div>
@@ -359,12 +360,12 @@ function ManagementBar({
               ariaLabel="Analytics"
             >
               <div ref={dropdownRefs.analytics}>
-                <Tabs defaultValue="transcript" className="w-full bg-background/20">
-                  <TabsList>
+                <Tabs defaultValue="transcript" className="w-full bg-background/20 rounded-lg">
+                  <TabsList className="">
                     <TabsTrigger value="transcript">Transcript</TabsTrigger>
                     <TabsTrigger value="screenshots">Screenshots</TabsTrigger>
                   </TabsList>
-                  <TabsContent value="transcript">
+                  <TabsContent value="transcript" className="min-h-[200px]">
                     {transcripts.length === 0 ? (
                       <div className="p-8 text-center  flex flex-col items-center justify-center">
                         {/* Muted microphone icon for no transcript */}
@@ -388,14 +389,14 @@ function ManagementBar({
                         <p className="text-sm mt-2">Transcripts will appear here when available.</p>
                       </div>
                     ) : (
-                      <div className="space-y-1 font-mono text-xs">
+                      <div className="space-y-1 font-mono text-xs  max-h-[400px] overflow-y-auto">
                         {transcripts.map((line, idx) => (
                           <div key={idx + line}>{line}</div>
                         ))}
                       </div>
                     )}
                   </TabsContent>
-                  <TabsContent value="screenshots">
+                  <TabsContent value="screenshots" className="min-h-[200px]">
                     <div>
                       <ScreenshotList screenshots={screenshots} />
                     </div>
@@ -414,7 +415,7 @@ function ManagementBar({
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: -10, scale: 0.95 }}
                 transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                className="absolute top-full left-0 mt-2 w-full bg-background/30  border border-border rounded-lg shadow-xl z-50"
+                className="absolute top-full left-0 mt-2 w-full bg-background/70 backdrop-blur-sm border border-border rounded-lg shadow-xl z-50"
               >
                 <div className="p-2">
                   <AIInput onSubmit={handleAskSubmit} className="rounded-lg bg-background/20">
@@ -457,11 +458,11 @@ function ManagementBar({
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                    className="mt-4 p-2 bg-background/30  border border-border/10 rounded-lg relative"
+                    className="p-2 border border-border/10 rounded-lg relative"
                   >
                     <button
                       onClick={() => setShowResponse(false)}
-                      className="absolute top-2 right-2 p-1 rounded-full hover:bg-background/30 transition-colors"
+                      className="absolute top-2 right-2 p-1 rounded-full hover:bg-background/70 transition-colors"
                       aria-label="Close response"
                     >
                       <X size={16} />
