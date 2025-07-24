@@ -97,56 +97,91 @@ const PostMeetingFollowUp: React.FC<PostMeetingFollowUpProps> = ({
     setIsGeneratingEmail(true);
     try {
       const API_KEY = import.meta.env.VITE_OPENROUTER_API_KEY;
+      
+      if (!API_KEY) {
+        throw new Error("OpenRouter API key not found. Please set VITE_OPENROUTER_API_KEY in your environment variables.");
+      }
+
       const MODEL = "google/gemini-2.0-flash-001";
 
-      const prompt = `Based on the following meeting information, generate a professional follow-up email:
+      // Enhanced prompt with more specific instructions
+      const prompt = `Based on the following meeting information, generate a professional follow-up email in a clear, business-appropriate format:
 
-Meeting: ${meetingData.title}
-Date: ${meetingData.date.toLocaleDateString()}
-Participants: ${meetingData.participants.join(", ")}
+**Meeting Details:**
+- Title: ${meetingData.title}
+- Date: ${meetingData.date.toLocaleDateString()}
+- Participants: ${meetingData.participants.join(", ")}
 
-Transcripts:
-${meetingData.transcripts.join("\n")}
+**Meeting Transcripts:**
+${meetingData.transcripts.length > 0 ? meetingData.transcripts.join("\n\n") : "No transcripts available"}
 
-Summary:
-${meetingSummary}
+**Meeting Summary:**
+${meetingSummary || "No summary available yet"}
 
+**Email Requirements:**
 Please generate a professional follow-up email that includes:
-1. Thank you for attendance
-2. Key discussion points
-3. Action items and next steps
-4. Any attachments or documents mentioned
-5. Next meeting date if applicable
+1. A warm greeting and thank you for attendance
+2. Brief recap of key discussion points from the transcripts
+3. Clear action items and next steps identified during the meeting
+4. Any important decisions made
+5. Mention of attachments or documents if referenced in transcripts
+6. Professional closing with next meeting information if applicable
 
-Make it concise but comprehensive.`;
+Format the email with proper subject line suggestion, greeting, body paragraphs, and professional closing. Make it concise but comprehensive, and ensure it captures the essence of what was discussed based on the transcripts provided.`;
+
+      console.log("Generating email with OpenRouter API...");
 
       const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
         method: "POST",
         headers: {
           Authorization: `Bearer ${API_KEY}`,
           "Content-Type": "application/json",
+          "HTTP-Referer": window.location.href,
+          "X-Title": "Meeting Follow-up Email Generator"
         },
         body: JSON.stringify({
           model: MODEL,
           messages: [
             {
+              role: "system",
+              content: "You are a professional business communication assistant. Generate clear, concise, and professional follow-up emails based on meeting information and transcripts provided."
+            },
+            {
               role: "user",
               content: prompt,
             },
           ],
+          max_tokens: 1500,
+          temperature: 0.7,
         }),
       });
 
       if (!response.ok) {
-        throw new Error("Failed to generate email content");
+        const errorText = await response.text();
+        console.error("OpenRouter API Error:", response.status, errorText);
+        throw new Error(`API request failed with status ${response.status}: ${errorText}`);
       }
 
       const data = await response.json();
-      const generatedContent = data.choices?.[0]?.message?.content || "";
+      
+      if (!data.choices || !data.choices[0] || !data.choices[0].message) {
+        console.error("Unexpected API response structure:", data);
+        throw new Error("Invalid response structure from OpenRouter API");
+      }
+
+      const generatedContent = data.choices[0].message.content || "";
+      
+      if (!generatedContent.trim()) {
+        throw new Error("Generated content is empty");
+      }
+
+      console.log("Successfully generated email content");
       setEmailContent(generatedContent);
+      
     } catch (error) {
       console.error("Error generating email:", error);
-      setEmailContent("Failed to generate email content. Please write manually.");
+      const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
+      setEmailContent(`Failed to generate email content: ${errorMessage}\n\nPlease write manually or check your API configuration.`);
     } finally {
       setIsGeneratingEmail(false);
     }
