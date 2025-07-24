@@ -38,7 +38,7 @@ export function ScreenshotList({ screenshots }: ScreenshotListProps) {
   };
 
   React.useEffect(() => {
-    // 检查每个 OCR 结果是否超出固定高度（60px）
+    // Check if each OCR result exceeds the fixed height (60px)
     const newOverflowIds: string[] = [];
     screenshots.forEach((screenshot) => {
       const ref = ocrRefs.current[screenshot.id];

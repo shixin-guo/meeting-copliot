@@ -25,7 +25,7 @@ const getPathTransition = (isChecked: boolean): Transition => ({
   },
 });
 function PlayfulTodolist({ todos, setTodos, selectedId }: PlayfulTodolistProps) {
-  // 切换完成状态
+  // Toggle completion status
   const handleCheck = (idx: number) => {
     setTodos((prev) =>
       prev.map((todo, i) => (i === idx ? { ...todo, completed: !todo.completed } : todo)),

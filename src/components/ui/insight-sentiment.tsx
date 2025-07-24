@@ -37,7 +37,7 @@ export function InsightSentiment() {
     },
   } satisfies ChartConfig;
 
-  // 初始化数据
+  // Initialize data
   useEffect(() => {
     startTimeRef.current = new Date();
     const initialData: { time: string; desktop: number; mobile: number }[] = [];
@@ -64,7 +64,7 @@ export function InsightSentiment() {
     setCurrentScore(initialData[initialData.length - 1].desktop);
   }, []);
 
-  // 实时添加新数据
+  // Add new data in real time
   useEffect(() => {
     const interval = setInterval(() => {
       if (isAnimating) {
@@ -109,7 +109,7 @@ export function InsightSentiment() {
     return () => clearInterval(interval);
   }, [chartData, isAnimating]);
 
-  // trend, getTrendIcon, getSentimentLabel, getScoreColor 保持不变，trend 计算用 desktop
+  // trend, getTrendIcon, getSentimentLabel, getScoreColor remain unchanged, trend calculation uses desktop
   const getTrend = () => {
     if (chartData.length < 2) {
       return "neutral";

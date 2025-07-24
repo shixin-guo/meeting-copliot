@@ -36,7 +36,7 @@ function App() {
   const [passWord, setPassWord] = useState("");
   const [userName] = useState("Shixin Guo");
 
-  // 文件上传
+  // File upload
   type UploadedDoc = { name: string; file: File; processing: boolean };
   const [uploadedDocs, setUploadedDocs] = useState<UploadedDoc[]>([]);
 
@@ -212,13 +212,13 @@ function App() {
     setScreenshots((prev) => prev.filter((s) => s.id !== id));
   };
 
-  // 模拟 RAG AI 分析过程
+  // Simulate RAG AI analysis process
   useEffect(() => {
     const processingDocs = uploadedDocs.filter((doc) => doc.processing);
     if (processingDocs.length === 0) {
       return;
     }
-    // 只处理第一个 processing 的文档，避免多次 setTimeout
+    // Only process the first document that is processing, avoid multiple setTimeout
     const timer = setTimeout(() => {
       setUploadedDocs((prev) =>
         prev.map((doc) => (doc.processing ? { ...doc, processing: false } : doc)),
@@ -315,7 +315,7 @@ function App() {
     summary: "Meeting summary will be generated...",
   };
 
-  // dark mode 切换
+  // Dark mode toggle
   const [isDark, setIsDark] = useState(() => {
     if (typeof window !== "undefined") {
       return document.documentElement.classList.contains("dark");
@@ -336,32 +336,34 @@ function App() {
 
   return (
     <div className="App min-h-screen bg-background">
-      {/* Dark mode toggle button 右上角 */}
+      {/* Dark mode toggle button top right corner */}
       <div className="fixed top-4 right-4 z-50">
         <Button
           variant="ghost"
           size="icon"
           onClick={toggleDark}
-          title={isDark ? "切换到浅色模式" : "切换到深色模式"}
+          title={isDark ? "Switch to light mode" : "Switch to dark mode"}
         >
           {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
         </Button>
       </div>
-      {!showFollowUp ? (
+      {showFollowUp ? (
         <PostMeetingFollowUp meetingData={mockMeetingData} onClose={() => setShowFollowUp(false)} />
       ) : (
         <main className="container mx-auto px-4 py-8">
           <div className="flex gap-6">
             {/* Left Column */}
             <div className="flex flex-col gap-6">
-              <ManagementBar
-                onScreenshotTaken={handleScreenshotTaken}
-                todos={todos}
-                setTodos={setTodos}
-                transcripts={transcripts}
-                screenshots={screenshots}
-                onDeleteScreenshot={handleDeleteScreenshot}
-              />
+              {isInMeeting && (
+                <ManagementBar
+                  onScreenshotTaken={handleScreenshotTaken}
+                  todos={todos}
+                  setTodos={setTodos}
+                  transcripts={transcripts}
+                  screenshots={screenshots}
+                  onDeleteScreenshot={handleDeleteScreenshot}
+                />
+              )}
             </div>
 
             {/* Center Column */}
@@ -466,23 +468,14 @@ function App() {
                   </DialogContent>
                 </Dialog>
               )}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Meeting View</CardTitle>
-                </CardHeader>
-                <CardContent>
+             
                   <div
                     id="meetingSDKElement"
-                    className="min-h-[600px] border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center"
+                    className="min-h-[600px] border-2 border-dashed   flex items-center justify-center"
                   >
-                    {isInMeeting ? (
-                      <p className="text-gray-500">Meeting is active</p>
-                    ) : (
-                      <p className="text-gray-500">Meeting will appear here after joining</p>
-                    )}
+                    
                   </div>
-                </CardContent>
-              </Card>
+              
             </div>
           </div>
         </main>
