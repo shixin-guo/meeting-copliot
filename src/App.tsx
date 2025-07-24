@@ -3,7 +3,6 @@ import ZoomMtgEmbedded, { type SuspensionViewType } from "@zoom/meetingsdk/embed
 import { SignJWT } from "jose";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -468,14 +467,11 @@ function App() {
                   </DialogContent>
                 </Dialog>
               )}
-             
-                  <div
-                    id="meetingSDKElement"
-                    className="min-h-[600px] border-2 border-dashed   flex items-center justify-center"
-                  >
-                    
-                  </div>
-              
+
+              <div
+                id="meetingSDKElement"
+                className="min-h-[600px] border-2 border-dashed   flex items-center justify-center"
+              />
             </div>
           </div>
         </main>
