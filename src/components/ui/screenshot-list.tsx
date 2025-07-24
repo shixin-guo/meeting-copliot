@@ -49,6 +49,7 @@ export function ScreenshotList({ screenshots }: ScreenshotListProps) {
         }
       }
     });
+    console.log("screenshots", screenshots);
     setOverflowIds(newOverflowIds);
   }, [screenshots]);
 
@@ -73,8 +74,9 @@ export function ScreenshotList({ screenshots }: ScreenshotListProps) {
             </div>
           ) : (
             <div className="">
-              {screenshots.map((screenshot) => (
-                <div key={screenshot.id} className="hover:shadow-md transition-shadow">
+              {screenshots.map((screenshot, index) => (
+                // biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
+                <div key={screenshot.id + index} className="hover:shadow-md transition-shadow">
                   <div className="flex items-center justify-between">
                     <div className="text-md font-bold text-gray-600 dark:text-gray-300">
                       {formatDurationSincePageLoad(screenshot.timestamp)}
@@ -92,7 +94,7 @@ export function ScreenshotList({ screenshots }: ScreenshotListProps) {
                       <div className="relative">
                         <div
                           ref={(el) => (ocrRefs.current[screenshot.id] = el)}
-                          className={`whitespace-pre-wrap mt-1 text-sm text-gray-800 dark:text-gray-200 bg-gray-100 dark:bg-gray-900 rounded-b-md p-3 transition-all duration-200`}
+                          className={`whitespace-pre-wrap mt-1 text-sm text-gray-800 dark:text-gray-200 border rounded-b-md p-2 transition-all duration-200`}
                           style={{
                             maxHeight: expandedIds.includes(screenshot.id) ? "none" : "52px",
                             overflow: expandedIds.includes(screenshot.id) ? "visible" : "hidden",

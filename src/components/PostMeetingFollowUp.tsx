@@ -670,7 +670,7 @@ Format as markdown with clear sections.`;
           <Dialog>
             <DialogTrigger asChild>
               <Button variant="outline" size="sm" className="flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-blue-500"/>
+                <Sparkles className="w-4 h-4 text-blue-500" />
                 Ask About This Meeting
               </Button>
             </DialogTrigger>

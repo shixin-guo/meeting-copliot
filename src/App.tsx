@@ -51,11 +51,16 @@ function App() {
 
   // State for dialog and meeting status
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [isInMeeting, setIsInMeeting] = useState(false);  // State for post-meeting follow-up
-  const [showFollowUp, setShowFollowUp] = useState(false);
+  type MeetingStep = "before" | "in" | "after";
+  const [meetingStep, setMeetingStep] = useState<MeetingStep>("before");
 
   // State for live transcripts
-  const [transcripts, setTranscripts] = useState<string[]>([]);
+  type TranscriptLine = {
+    user: string;
+    timestamp: number;
+    content: string;
+  };
+  const [transcripts, setTranscripts] = useState<TranscriptLine[]>([]);
 
   // Add a ref to store the meeting start time
   const meetingStartTimeRef = useRef<number | null>(null);
@@ -142,7 +147,7 @@ function App() {
       // Generate JWT token directly in browser
       const signature = await generateJWT();
       await startMeeting(signature);
-      setIsInMeeting(true);
+      setMeetingStep("in");
       setIsDialogOpen(false);
     } catch (e) {
       console.log("Failed to get signature:", e);
@@ -151,8 +156,9 @@ function App() {
 
   // Function to call OpenRouter Vision Model for OCR/analysis
   async function fetchOcrResult(imageDataUrl: string): Promise<string> {
+    console.log("fetchOcrResult");
     try {
-      const API_KEY = import.meta.env.VITE_OPENROUTER_API_KEY; // Replace with your key
+      const API_KEY = "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"; // Replace with your key
       const MODEL = "google/gemini-2.0-flash-001"; // Or another vision model you have access to
 
       const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
@@ -169,7 +175,11 @@ function App() {
               content: [
                 {
                   type: "text",
-                  text: "What's in this image? Please extract all content (OCR) and return the content in markdown format. first line is the topic (### topic), other lines are the content.",
+                  text: `What's in this image? 
+                  Please extract main content (OCR) and return the content in markdown format. 
+                  first line is the topic (### topic),
+                   other lines are the content. 
+                   remove the meaningless words`,
                 },
                 {
                   type: "image_url",
@@ -240,18 +250,14 @@ function App() {
       try {
         const msg = JSON.parse(event.data);
         if (msg.type === "transcript") {
-          // Calculate duration since meeting start
-          let durationStr = "[--:--:--]";
-          if (meetingStartTimeRef.current) {
-            const durationMs = msg.timestamp - meetingStartTimeRef.current;
-            const totalSeconds = Math.max(0, Math.floor(durationMs / 1000));
-            const hours = String(Math.floor(totalSeconds / 3600)).padStart(2, "0");
-            const minutes = String(Math.floor((totalSeconds % 3600) / 60)).padStart(2, "0");
-            const seconds = String(totalSeconds % 60).padStart(2, "0");
-            durationStr = `[${hours}:${minutes}:${seconds}]`;
-          }
-          const line = `${durationStr} ${msg.user}: ${msg.content}`;
-          setTranscripts((prev) => [...prev, line]);
+          setTranscripts((prev) => [
+            ...prev,
+            {
+              user: msg.user,
+              timestamp: msg.timestamp,
+              content: msg.content,
+            },
+          ]);
         }
       } catch {
         // err removed, linter fix
@@ -271,7 +277,6 @@ function App() {
   const [todos, setTodos] = useState<Array<{ id: string; content: string; completed: boolean }>>(
     [],
   );
-
 
   async function startMeeting(signature: string) {
     // Set meeting start time when meeting actually starts
@@ -331,8 +336,7 @@ function App() {
 
   // Function to handle meeting end and show follow-up
   const handleMeetingEnd = () => {
-    setIsInMeeting(false);
-    setShowFollowUp(true);
+    setMeetingStep("after");
   };
 
   // Mock meeting data for the follow-up component
@@ -367,8 +371,8 @@ function App() {
 
   return (
     <div className="App min-h-screen bg-background">
-       {/* Dark mode toggle button top right corner */}
-       <div className="fixed top-4 right-4 z-50">
+      {/* Dark mode toggle button top right corner */}
+      <div className="fixed top-4 right-4 z-50">
         <Button
           variant="ghost"
           size="icon"
@@ -378,20 +382,8 @@ function App() {
           {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
         </Button>
       </div>
-      <div className="flex flex-col gap-6 fixed top-[100px] left-0 w-full z-50">
-        {isInMeeting && (
-          <ManagementBar
-            onScreenshotTaken={handleScreenshotTaken}
-            todos={todos}
-            setTodos={setTodos}
-            transcripts={transcripts}
-            screenshots={screenshots}
-            onDeleteScreenshot={handleDeleteScreenshot}
-          />
-        )}
-      </div>
-     
-      {!(isInMeeting || showFollowUp) && (
+
+      {meetingStep === "before" && (
         <div className="fixed top-0 w-full h-full flex justify-center">
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
@@ -492,21 +484,33 @@ function App() {
           </Dialog>
         </div>
       )}
+      <div className="flex flex-col gap-6 fixed top-[100px] left-0 w-full z-50">
+        {meetingStep === "in" && (
+          <ManagementBar
+            onScreenshotTaken={handleScreenshotTaken}
+            todos={todos}
+            setTodos={setTodos}
+            transcripts={transcripts}
+            screenshots={screenshots}
+            onDeleteScreenshot={handleDeleteScreenshot}
+          />
+        )}
+      </div>
 
-      {showFollowUp ? (
-        <PostMeetingFollowUp meetingData={mockMeetingData} onClose={() => setShowFollowUp(false)} />
-      ) : (
+      {meetingStep === "after" && (
+        <PostMeetingFollowUp
+          meetingData={mockMeetingData}
+          onClose={() => setMeetingStep("before")}
+        />
+      )}
+
+      {meetingStep !== "after" && (
         <main className="container max-w-none">
           <div className="flex gap-6">
-            {/* Left Column */}
-
-            {/* Center Column */}
             <div className="flex-1 w-full mx-auto flex flex-col gap-6">
-              {/* Join Meeting Dialog (centered at top of center column) */}
-
               <div
                 id="meetingSDKElement"
-                className="h-screen border-2 border-dashed   flex items-center justify-center"
+                className="h-screen flex items-center justify-center bg-black/50"
               />
             </div>
           </div>

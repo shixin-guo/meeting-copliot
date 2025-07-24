@@ -23,7 +23,8 @@ import { InsightTopic } from "@/components/ui/insight-topic";
 import { DropdownButton } from "@/components/ui/dropdown-button";
 import { Toggle } from "@/components/ui/toggle";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { CompetitorListData } from "@/constants";
 const BUTTON_MOTION_CONFIG = {
   initial: "rest",
   whileHover: "hover",
@@ -44,9 +45,28 @@ interface ManagementBarProps {
   setTodos: React.Dispatch<
     React.SetStateAction<Array<{ id: string; content: string; completed: boolean }>>
   >;
-  transcripts: string[];
+  transcripts: {
+    user: string;
+    timestamp: number;
+    content: string;
+  }[];
   screenshots: Array<{ id: string; dataUrl: string; timestamp: Date; ocrResult?: string }>;
   onDeleteScreenshot: (id: string) => void;
+}
+
+const competitorTopics = CompetitorListData.map(item => item.topic.trim()).filter(Boolean);
+
+function highlightTopicsInContent(content: string) {
+  if (!content) return content;
+  let result = content;
+  competitorTopics.forEach(topic => {
+    if (!topic) return;
+    // Escape RegExp special chars in topic
+    const safeTopic = topic.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const regex = new RegExp(`(${safeTopic})`, 'gi');
+    result = result.replace(regex, '<span class="text-yellow-200 font-bold">$1</span>');
+  });
+  return result;
 }
 
 function ManagementBar({
@@ -211,7 +231,7 @@ function ManagementBar({
             className={`flex items-center rounded-lg  px-1.5 py-1 mx-1 text-gray-700 dark:text-gray-300 transition-all duration-300`}
             aria-label="Ask AI"
           >
-            <Sparkles size={20} className="text-blue-500"/>
+            <Sparkles size={20} className="text-blue-500" />
             <span className="overflow-hidden whitespace-nowrap text-sm ml-1">Ask AI</span>
           </motion.button>
           <div className="mx-2 hidden h-4 w-px bg-border sm:block rounded-full" />
@@ -389,10 +409,37 @@ function ManagementBar({
                         <p className="text-sm mt-2">Transcripts will appear here when available.</p>
                       </div>
                     ) : (
-                      <div className="space-y-1 font-mono text-xs  max-h-[400px] overflow-y-auto">
-                        {transcripts.map((line, idx) => (
-                          <div key={idx + line}>{line}</div>
-                        ))}
+                      <div className="space-y-1 font-mono text-xs max-h-[400px] overflow-y-auto">
+                        {transcripts.map((line, idx) => {
+                          const prev = transcripts[idx - 1];
+                          const showMeta = !prev || prev.user !== line.user;
+                          const time = new Date(line.timestamp);
+                          const timeStr = `${time.getHours().toString().padStart(2, "0")}:${time.getMinutes().toString().padStart(2, "0")}:${time.getSeconds().toString().padStart(2, "0")}`;
+                          return (
+                            <div key={idx} className="">
+                              {showMeta ? (
+                                <>
+                                  <div className="flex gap-2 justify-center items-center">
+                                    <div className="flex flex-col items-center min-w-[40px]">
+                                      <Avatar className="w-6 h-6 rounded-sm" >
+                                        <AvatarFallback className="rounded-sm">{line.user?.[0] || "?"}</AvatarFallback>
+                                      </Avatar>
+                                    </div>
+                                    <div className="flex-1">
+                                      <span className="font-semibold mr-2">{line.user}</span>
+                                      <span className="text-[10px] text-gray-400 mt-1">
+                                        {timeStr}
+                                      </span>
+                                    </div>
+                                  </div>
+                                  <div className="ml-2 mt-1"><span dangerouslySetInnerHTML={{ __html: highlightTopicsInContent(line.content) }} /></div>
+                                </>
+                              ) : (
+                                <div className="flex-1 ml-2 mt-1"><span dangerouslySetInnerHTML={{ __html: highlightTopicsInContent(line.content) }} /></div>
+                              )}
+                            </div>
+                          );
+                        })}
                       </div>
                     )}
                   </TabsContent>
@@ -445,11 +492,28 @@ function ManagementBar({
                           ) : (
                             <Camera size={20} className="shrink-0" />
                           )}
-                          {/* <span className="overflow-hidden whitespace-nowrap text-sm ml-1">AI Vision</span> */}
                         </AIInputButton>
                       </AIInputTools>
                       <AIInputSubmit disabled={!text} status={status} />
                     </AIInputToolbar>
+                    {/* Screenshot thumbnails and OCR results */}
+                    {screenshots.length > 0 && (
+                      <div className="mt-1 flex flex-wrap gap-4 px-1">
+                        <div
+                          key={screenshots[0].id}
+                          className="flex flex-col items-center  rounded text-sm text-white"
+                        >
+                          <img
+                            src={screenshots[0].dataUrl}
+                            alt="Screenshot"
+                            style={{ width: 60, height: "auto", borderRadius: 4, marginBottom: 4 }}
+                          />
+                          {/* <div className="text-xs  w-full overflow-auto" style={{ maxHeight: 60 }}>
+                            {screenshots[0].ocrResult || <span className="text-gray-400">Analyzing...</span>}
+                          </div> */}
+                        </div>
+                      </div>
+                    )}
                   </AIInput>
                 </div>
                 {/* AI Response */}

@@ -2,28 +2,21 @@
 
 import { useEffect, useState } from "react";
 import { TrendingUp, TrendingDown, Minus } from "lucide-react";
-import {
-  CartesianGrid,
-  Line,
-  LineChart,
-  ResponsiveContainer,
-  XAxis,
-  YAxis,
-  Tooltip,
-} from "recharts";
+import { CartesianGrid, Line, LineChart, XAxis } from "recharts";
 
 import {
   type ChartConfig,
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
-} from "@/components/ui/chart"
+} from "@/components/ui/chart";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-
 
 export function SentimentChart() {
   // chartData: [{ time: "12:01:05", desktop: 65, mobile: 50 }, ...]
-  const [chartData, setChartData] = useState<{ time: string; desktop: number; mobile: number }[]>([]);
+  const [chartData, setChartData] = useState<{ time: string; desktop: number; mobile: number }[]>(
+    [],
+  );
   const [currentScore, setCurrentScore] = useState(50);
   const [isAnimating, setIsAnimating] = useState(false);
 
@@ -32,7 +25,6 @@ export function SentimentChart() {
       label: "Score",
       color: "#4F8AFA", // Use hex color
     },
-   
   } satisfies ChartConfig;
 
   // 初始化数据
@@ -65,7 +57,9 @@ export function SentimentChart() {
   // 实时添加新数据
   useEffect(() => {
     const interval = setInterval(() => {
-      if (isAnimating) return;
+      if (isAnimating) {
+        return;
+      }
       setIsAnimating(true);
       const lastDesktop = chartData.length > 0 ? chartData[chartData.length - 1].desktop : 50;
       const lastMobile = chartData.length > 0 ? chartData[chartData.length - 1].mobile : 40;
@@ -92,7 +86,9 @@ export function SentimentChart() {
         };
         setChartData((prev) => {
           const updated = [...prev, newDataPoint];
-          if (updated.length > 20) return updated.slice(-20);
+          if (updated.length > 20) {
+            return updated.slice(-20);
+          }
           return updated;
         });
         setCurrentScore(newDesktop);
@@ -107,12 +103,18 @@ export function SentimentChart() {
 
   // trend, getTrendIcon, getSentimentLabel, getScoreColor 保持不变，trend 计算用 desktop
   const getTrend = () => {
-    if (chartData.length < 2) return "neutral";
+    if (chartData.length < 2) {
+      return "neutral";
+    }
     const recent = chartData.slice(-5);
     const avgRecent = recent.reduce((sum, item) => sum + item.desktop, 0) / recent.length;
     const avgPrevious = chartData.slice(-10, -5).reduce((sum, item) => sum + item.desktop, 0) / 5;
-    if (avgRecent > avgPrevious + 2) return "up";
-    if (avgRecent < avgPrevious - 2) return "down";
+    if (avgRecent > avgPrevious + 2) {
+      return "up";
+    }
+    if (avgRecent < avgPrevious - 2) {
+      return "down";
+    }
     return "neutral";
   };
   const trend = getTrend();
@@ -185,11 +187,7 @@ export function SentimentChart() {
         </div>
         <div className="h-[200px]">
           <ChartContainer config={chartConfig}>
-            <LineChart
-              accessibilityLayer
-              data={chartData}
-              margin={{ left: 12, right: 12 }}
-            >
+            <LineChart accessibilityLayer data={chartData} margin={{ left: 12, right: 12 }}>
               <CartesianGrid vertical={false} />
               <XAxis
                 dataKey="time"
