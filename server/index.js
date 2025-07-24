@@ -44,6 +44,10 @@ app.use(express.json());
 
 // Map to keep track of active WebSocket connections and audio chunks
 const activeConnections = new Map();
+// Store transcripts for each meeting
+const meetingTranscripts = new Map();
+// Store meeting metadata
+const meetingData = new Map();
 
 app.get("/", (_req, res) => {
   res.sendFile(path.join(__dirname, "public", "index.html"));
@@ -182,6 +186,139 @@ app.post("/api/llm-direct", async (req, res) => {
   } catch (err) {
     console.error("Error in /api/llm-direct:", err);
     res.status(500).json({ error: "Failed to get LLM response" });
+  }
+});
+
+// New API endpoint to get meeting data (transcripts and screenshots)
+app.get("/api/meeting-data/:meetingId?", async (req, res) => {
+  try {
+    const meetingId = req.params.meetingId || 'current';
+    
+    // Get transcripts
+    const transcripts = meetingTranscripts.get(meetingId) || [];
+    
+    // Get all screenshots from recordings directory
+    const recordingsDir = path.resolve("recordings");
+    let screenshots = [];
+    
+    if (fs.existsSync(recordingsDir)) {
+      const files = fs
+        .readdirSync(recordingsDir)
+        .filter((f) => f.endsWith(".jpg") || f.endsWith(".png"))
+        .map((f) => {
+          const filePath = path.join(recordingsDir, f);
+          const stats = fs.statSync(filePath);
+          const fileBuffer = fs.readFileSync(filePath);
+          const ext = f.endsWith(".png") ? "png" : "jpeg";
+          const dataUrl = `data:image/${ext};base64,${fileBuffer.toString("base64")}`;
+          
+          return {
+            id: f,
+            dataUrl,
+            timestamp: new Date(stats.mtime),
+            ocrResult: null // Will be processed later if needed
+          };
+        })
+        .sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
+      
+      screenshots = files;
+    }
+    
+    // Get meeting metadata or create default
+    const metadata = meetingData.get(meetingId) || {
+      id: meetingId,
+      title: "Live Meeting Session",
+      date: new Date(),
+      participants: ["Meeting Participants"]
+    };
+    
+    res.json({
+      ...metadata,
+      transcripts: transcripts.map(t => t.content),
+      screenshots,
+      summary: metadata.summary || null
+    });
+  } catch (err) {
+    console.error("Error in /api/meeting-data:", err);
+    res.status(500).json({ error: "Failed to get meeting data" });
+  }
+});
+
+// New API endpoint to generate meeting insights using AI
+app.post("/api/generate-meeting-insights", async (req, res) => {
+  const { transcripts, meetingId } = req.body;
+  
+  if (!transcripts || !Array.isArray(transcripts)) {
+    return res.status(400).json({ error: "Missing or invalid transcripts" });
+  }
+  
+  try {
+    const { chatWithOpenRouter } = await import("./chatWithOpenrouter.js");
+    
+    const transcriptText = transcripts.join("\n");
+    
+    const prompt = `Based on the following meeting transcript, please extract and provide:
+
+TRANSCRIPT:
+${transcriptText}
+
+Please provide a JSON response with the following structure:
+{
+  "meetingName": "A concise, descriptive title for this meeting",
+  "meetingTopic": "The main topic or purpose of the meeting",
+  "summary": "A comprehensive summary of the meeting in markdown format",
+  "nextSteps": [
+    "List of action items and next steps discussed"
+  ],
+  "keyPoints": [
+    "Important discussion points and decisions made"
+  ],
+  "participants": [
+    "Names of participants mentioned in the transcript"
+  ]
+}
+
+Make sure the response is valid JSON format.`;
+
+    const response = await chatWithOpenRouter(prompt);
+    
+    try {
+      // Try to parse the response as JSON
+      const insights = JSON.parse(response);
+      
+      // Store the insights with the meeting data
+      const meetingId_key = meetingId || 'current';
+      const existing = meetingData.get(meetingId_key) || {};
+      meetingData.set(meetingId_key, {
+        ...existing,
+        id: meetingId_key,
+        title: insights.meetingName || existing.title || "Live Meeting Session",
+        topic: insights.meetingTopic,
+        summary: insights.summary,
+        nextSteps: insights.nextSteps,
+        keyPoints: insights.keyPoints,
+        participants: insights.participants && insights.participants.length > 0 
+          ? insights.participants 
+          : existing.participants || ["Meeting Participants"],
+        date: existing.date || new Date()
+      });
+      
+      res.json(insights);
+    } catch (parseError) {
+      console.error("Failed to parse AI response as JSON:", parseError);
+      // Fallback: return the raw response
+      res.json({
+        meetingName: "Meeting Session",
+        meetingTopic: "Discussion",
+        summary: response,
+        nextSteps: [],
+        keyPoints: [],
+        participants: []
+      });
+    }
+  } catch (err) {
+    console.error("Error in /api/generate-meeting-insights:", err);
+    res.status(500).json({ error: "Failed to generate meeting insights" });
   }
 });
 
@@ -446,7 +583,17 @@ function connectToMediaWebSocket(mediaUrl, meetingUuid, streamId, signalingSocke
       if (msg.msg_type === 17 && msg.content && msg.content.data) {
         console.log("Transcript data received");
 
-        //    const result = await askLLMWithTranscript( msg.content.data);
+        // Store transcript data
+        const meetingId = 'current'; // You can extract this from meetingUuid if needed
+        if (!meetingTranscripts.has(meetingId)) {
+          meetingTranscripts.set(meetingId, []);
+        }
+        
+        meetingTranscripts.get(meetingId).push({
+          content: msg.content.data,
+          user: msg.content.user_name,
+          timestamp: Date.now()
+        });
 
         broadcastToFrontendClients({
           type: "transcript",

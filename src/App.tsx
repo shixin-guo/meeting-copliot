@@ -304,16 +304,8 @@ function App() {
     setShowFollowUp(true);
   };
 
-  // Mock meeting data for the follow-up component
-  const mockMeetingData = {
-    id: "meeting-123",
-    title: "Team Sync Meeting",
-    date: new Date(),
-    participants: ["john@example.com", "jane@example.com", "bob@example.com"],
-    transcripts: transcripts,
-    screenshots: screenshots,
-    summary: "Meeting summary will be generated..."
-  };
+  // Meeting ID for the follow-up component (using 'current' as default)
+  const currentMeetingId = "current";
 
   // dark mode 切换
   const [isDark, setIsDark] = useState(() => {
@@ -349,7 +341,7 @@ function App() {
       </div>
       {showFollowUp ? (
         <PostMeetingFollowUp 
-          meetingData={mockMeetingData}
+          meetingId={currentMeetingId}
           onClose={() => setShowFollowUp(false)}
         />
       ) : (

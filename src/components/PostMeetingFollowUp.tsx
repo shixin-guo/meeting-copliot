@@ -29,7 +29,8 @@ import {
   Brain,
   Plus,
   Trash2,
-  Edit3
+  Edit3,
+  RefreshCw
 } from "lucide-react";
 
 interface MeetingData {
@@ -45,6 +46,18 @@ interface MeetingData {
     ocrResult?: string;
   }>;
   summary?: string;
+  topic?: string;
+  nextSteps?: string[];
+  keyPoints?: string[];
+}
+
+interface MeetingInsights {
+  meetingName: string;
+  meetingTopic: string;
+  summary: string;
+  nextSteps: string[];
+  keyPoints: string[];
+  participants: string[];
 }
 
 interface FollowUpAction {
@@ -59,14 +72,19 @@ interface FollowUpAction {
 }
 
 interface PostMeetingFollowUpProps {
-  meetingData: MeetingData;
+  meetingId?: string;
   onClose?: () => void;
 }
 
 const PostMeetingFollowUp: React.FC<PostMeetingFollowUpProps> = ({ 
-  meetingData, 
+  meetingId = 'current',
   onClose 
 }) => {
+  const [meetingData, setMeetingData] = useState<MeetingData | null>(null);
+  const [insights, setInsights] = useState<MeetingInsights | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  
   const [emailContent, setEmailContent] = useState("");
   const [emailSubject, setEmailSubject] = useState("");
   const [emailRecipients, setEmailRecipients] = useState<string[]>([]);
@@ -80,7 +98,7 @@ const PostMeetingFollowUp: React.FC<PostMeetingFollowUpProps> = ({
   
   const [isGeneratingEmail, setIsGeneratingEmail] = useState(false);
   const [isGeneratingSummary, setIsGeneratingSummary] = useState(false);
-  const [meetingSummary, setMeetingSummary] = useState(meetingData.summary || "");
+  const [isLoadingInsights, setIsLoadingInsights] = useState(false);
 
   const [expandedSections, setExpandedSections] = useState({
     transcripts: false,
@@ -88,17 +106,114 @@ const PostMeetingFollowUp: React.FC<PostMeetingFollowUpProps> = ({
     summary: true
   });
 
+  // Fetch meeting data from server
+  const fetchMeetingData = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      const response = await fetch(`http://localhost:3000/api/meeting-data/${meetingId}`);
+      
+      if (!response.ok) {
+        throw new Error(`Failed to fetch meeting data: ${response.statusText}`);
+      }
+      
+      const data = await response.json();
+      
+      const processedData: MeetingData = {
+        ...data,
+        date: new Date(data.date),
+        screenshots: data.screenshots.map((s: any) => ({
+          ...s,
+          timestamp: new Date(s.timestamp)
+        }))
+      };
+      
+      setMeetingData(processedData);
+      
+      // Set initial email data
+      setEmailSubject(`Follow-up: ${processedData.title}`);
+      setEmailRecipients(processedData.participants);
+      
+    } catch (err) {
+      console.error("Error fetching meeting data:", err);
+      setError(err instanceof Error ? err.message : "Failed to fetch meeting data");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Generate AI insights from transcripts
+  const generateMeetingInsights = async () => {
+    if (!meetingData || !meetingData.transcripts.length) {
+      setError("No transcript data available for analysis");
+      return;
+    }
+    
+    try {
+      setIsLoadingInsights(true);
+      setError(null);
+      
+      const response = await fetch('http://localhost:3000/api/generate-meeting-insights', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          transcripts: meetingData.transcripts,
+          meetingId: meetingId
+        }),
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Failed to generate insights: ${response.statusText}`);
+      }
+      
+      const generatedInsights = await response.json();
+      setInsights(generatedInsights);
+      
+      // Update meeting data with new insights
+      setMeetingData(prev => prev ? {
+        ...prev,
+        title: generatedInsights.meetingName || prev.title,
+        topic: generatedInsights.meetingTopic,
+        summary: generatedInsights.summary,
+        nextSteps: generatedInsights.nextSteps,
+        keyPoints: generatedInsights.keyPoints,
+        participants: generatedInsights.participants && generatedInsights.participants.length > 0
+          ? generatedInsights.participants
+          : prev.participants
+      } : null);
+      
+      // Update email subject with new meeting name
+      if (generatedInsights.meetingName) {
+        setEmailSubject(`Follow-up: ${generatedInsights.meetingName}`);
+      }
+      
+    } catch (err) {
+      console.error("Error generating insights:", err);
+      setError(err instanceof Error ? err.message : "Failed to generate meeting insights");
+    } finally {
+      setIsLoadingInsights(false);
+    }
+  };
+
   useEffect(() => {
-    setEmailSubject(`Follow-up: ${meetingData.title}`);
-    setEmailRecipients(meetingData.participants);
+    fetchMeetingData();
+  }, [meetingId]);
+
+  // Auto-generate insights when meeting data is loaded
+  useEffect(() => {
+    if (meetingData && meetingData.transcripts.length > 0 && !insights) {
+      generateMeetingInsights();
+    }
   }, [meetingData]);
 
   const generateEmailContent = async () => {
+    if (!meetingData) return;
+    
     setIsGeneratingEmail(true);
     try {
-      const API_KEY = import.meta.env.VITE_OPENROUTER_API_KEY;
-      const MODEL = "google/gemini-2.0-flash-001";
-
       const prompt = `Based on the following meeting information, generate a professional follow-up email:
 
 Meeting: ${meetingData.title}
@@ -108,8 +223,9 @@ Participants: ${meetingData.participants.join(", ")}
 Transcripts:
 ${meetingData.transcripts.join("\n")}
 
-Summary:
-${meetingSummary}
+${insights?.summary ? `Summary:\n${insights.summary}` : ''}
+
+${insights?.nextSteps?.length ? `Next Steps:\n${insights.nextSteps.join('\n')}` : ''}
 
 Please generate a professional follow-up email that includes:
 1. Thank you for attendance
@@ -120,20 +236,14 @@ Please generate a professional follow-up email that includes:
 
 Make it concise but comprehensive.`;
 
-      const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-        method: "POST",
+      const response = await fetch('http://localhost:3000/api/llm-direct', {
+        method: 'POST',
         headers: {
-          Authorization: `Bearer ${API_KEY}`,
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          model: MODEL,
-          messages: [
-            {
-              role: "user",
-              content: prompt,
-            },
-          ],
+          message: prompt,
+          model: "google/gemini-2.0-flash-001"
         }),
       });
 
@@ -142,7 +252,7 @@ Make it concise but comprehensive.`;
       }
 
       const data = await response.json();
-      const generatedContent = data.choices?.[0]?.message?.content || "";
+      const generatedContent = data.response || "";
       setEmailContent(generatedContent);
     } catch (error) {
       console.error("Error generating email:", error);
@@ -153,11 +263,10 @@ Make it concise but comprehensive.`;
   };
 
   const generateMeetingSummary = async () => {
+    if (!meetingData) return;
+    
     setIsGeneratingSummary(true);
     try {
-      const API_KEY = import.meta.env.VITE_OPENROUTER_API_KEY;
-      const MODEL = "google/gemini-2.0-flash-001";
-
       const prompt = `Please create a comprehensive meeting summary based on the following information:
 
 Meeting: ${meetingData.title}
@@ -180,20 +289,14 @@ Please provide:
 
 Format as markdown with clear sections.`;
 
-      const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-        method: "POST",
+      const response = await fetch('http://localhost:3000/api/llm-direct', {
+        method: 'POST',
         headers: {
-          Authorization: `Bearer ${API_KEY}`,
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          model: MODEL,
-          messages: [
-            {
-              role: "user",
-              content: prompt,
-            },
-          ],
+          message: prompt,
+          model: "google/gemini-2.0-flash-001"
         }),
       });
 
@@ -202,8 +305,12 @@ Format as markdown with clear sections.`;
       }
 
       const data = await response.json();
-      const generatedSummary = data.choices?.[0]?.message?.content || "";
-      setMeetingSummary(generatedSummary);
+      const generatedSummary = data.response || "";
+      
+      setMeetingData(prev => prev ? { ...prev, summary: generatedSummary } : null);
+      if (insights) {
+        setInsights(prev => prev ? { ...prev, summary: generatedSummary } : null);
+      }
     } catch (error) {
       console.error("Error generating summary:", error);
     } finally {
@@ -233,6 +340,8 @@ Format as markdown with clear sections.`;
   };
 
   const syncToSalesforce = async () => {
+    if (!meetingData) return;
+    
     try {
       setSyncStatus(prev => ({ ...prev, salesforce: 'pending' }));
       setIsSyncing(true);
@@ -244,7 +353,7 @@ Format as markdown with clear sections.`;
         meetingTitle: meetingData.title,
         meetingDate: meetingData.date,
         participants: meetingData.participants,
-        summary: meetingSummary,
+        summary: meetingData.summary || insights?.summary,
         transcripts: meetingData.transcripts,
         followUpActions: followUpActions,
         attachments: meetingData.screenshots.map(s => ({
@@ -265,6 +374,8 @@ Format as markdown with clear sections.`;
   };
 
   const syncToDocuments = async () => {
+    if (!meetingData) return;
+    
     try {
       setSyncStatus(prev => ({ ...prev, documents: 'pending' }));
       
@@ -273,7 +384,7 @@ Format as markdown with clear sections.`;
       
       const documentData = {
         title: `${meetingData.title} - Meeting Notes`,
-        content: meetingSummary,
+        content: meetingData.summary || insights?.summary,
         transcripts: meetingData.transcripts,
         screenshots: meetingData.screenshots
       };
@@ -345,20 +456,67 @@ Format as markdown with clear sections.`;
     }
   };
 
+  if (loading) {
+    return (
+      <div className="max-w-6xl mx-auto p-6">
+        <div className="flex items-center justify-center h-64">
+          <RefreshCw className="w-8 h-8 animate-spin" />
+          <span className="ml-2 text-lg">Loading meeting data...</span>
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !meetingData) {
+    return (
+      <div className="max-w-6xl mx-auto p-6">
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-center flex-col h-32">
+              <AlertCircle className="w-8 h-8 text-red-500 mb-2" />
+              <h3 className="text-lg font-semibold mb-2">Error Loading Meeting Data</h3>
+              <p className="text-muted-foreground mb-4">{error || "Failed to load meeting data"}</p>
+              <Button onClick={fetchMeetingData} variant="outline">
+                <RefreshCw className="w-4 h-4 mr-2" />
+                Try Again
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-6xl mx-auto p-6 space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Post-Meeting Follow-Up</h1>
+          <div className="flex items-center gap-2">
+            <h1 className="text-3xl font-bold">{meetingData.title}</h1>
+            {isLoadingInsights && <RefreshCw className="w-5 h-5 animate-spin" />}
+          </div>
           <p className="text-muted-foreground mt-2">
-            {meetingData.title} • {meetingData.date.toLocaleDateString()}
+            {meetingData.date.toLocaleDateString()} • {meetingData.participants.join(", ")}
           </p>
+          {insights?.meetingTopic && (
+            <p className="text-sm text-blue-600 mt-1">Topic: {insights.meetingTopic}</p>
+          )}
         </div>
-        {onClose && (
-          <Button variant="outline" onClick={onClose}>
-            Close
+        <div className="flex gap-2">
+          <Button 
+            onClick={generateMeetingInsights} 
+            disabled={isLoadingInsights}
+            variant="outline"
+          >
+            <Brain className="w-4 h-4 mr-2" />
+            {isLoadingInsights ? "Analyzing..." : "Refresh Insights"}
           </Button>
-        )}
+          {onClose && (
+            <Button variant="outline" onClick={onClose}>
+              Close
+            </Button>
+          )}
+        </div>
       </div>
 
       <Tabs defaultValue="summary" className="w-full">
@@ -390,13 +548,49 @@ Format as markdown with clear sections.`;
             </CardHeader>
             <CardContent>
               <Textarea
-                value={meetingSummary}
-                onChange={(e) => setMeetingSummary(e.target.value)}
+                value={meetingData.summary || insights?.summary || ""}
+                onChange={(e) => setMeetingData(prev => prev ? { ...prev, summary: e.target.value } : null)}
                 placeholder="Meeting summary will be generated here..."
                 className="min-h-[300px] font-mono text-sm"
               />
             </CardContent>
           </Card>
+
+          {insights?.keyPoints && insights.keyPoints.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Key Discussion Points</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ul className="space-y-2">
+                  {insights.keyPoints.map((point, index) => (
+                    <li key={index} className="flex items-start gap-2">
+                      <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
+                      <span className="text-sm">{point}</span>
+                    </li>
+                  ))}
+                </ul>
+              </CardContent>
+            </Card>
+          )}
+
+          {insights?.nextSteps && insights.nextSteps.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Next Steps & Action Items</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ul className="space-y-2">
+                  {insights.nextSteps.map((step, index) => (
+                    <li key={index} className="flex items-start gap-2">
+                      <Clock className="w-4 h-4 text-blue-500 mt-0.5 flex-shrink-0" />
+                      <span className="text-sm">{step}</span>
+                    </li>
+                  ))}
+                </ul>
+              </CardContent>
+            </Card>
+          )}
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Card>
