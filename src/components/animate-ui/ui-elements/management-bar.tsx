@@ -57,10 +57,10 @@ interface ManagementBarProps {
 const competitorTopics = CompetitorListData.map(item => item.topic.trim()).filter(Boolean);
 
 function highlightTopicsInContent(content: string) {
-  if (!content) return content;
+  if (!content) { return content; }
   let result = content;
   competitorTopics.forEach(topic => {
-    if (!topic) return;
+    if (!topic) { return; }
     // Escape RegExp special chars in topic
     const safeTopic = topic.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     const regex = new RegExp(`(${safeTopic})`, 'gi');
