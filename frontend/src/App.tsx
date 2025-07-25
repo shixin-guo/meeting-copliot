@@ -158,7 +158,7 @@ function App() {
   async function fetchOcrResult(imageDataUrl: string): Promise<string> {
     console.log("fetchOcrResult");
     try {
-      const API_KEY = "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"; // Replace with your key
+      const API_KEY = import.meta.env.VITE_OPENROUTER_API_KEY; // Replace with your key
       const MODEL = "google/gemini-2.0-flash-001"; // Or another vision model you have access to
 
       const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {

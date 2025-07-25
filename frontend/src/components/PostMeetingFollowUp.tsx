@@ -310,7 +310,7 @@ const PostMeetingFollowUp: React.FC<PostMeetingFollowUpProps> = ({ meetingData }
   // Fetch transcripts and screenshots from API on mount
   useEffect(() => {
     // Fetch transcripts
-    fetch("/api/transcripts")
+    fetch("http://localhost:3789/api/transcripts")
       .then((res) => res.json())
       .then((data) => {
         if (Array.isArray(data.transcripts)) {
@@ -337,24 +337,23 @@ const PostMeetingFollowUp: React.FC<PostMeetingFollowUpProps> = ({ meetingData }
       });
 
     // Fetch screenshots
-    fetch("/api/screenshots")
+    fetch("http://localhost:3789/api/screenshots")
       .then((res) => res.json())
       .then((data) => {
         if (Array.isArray(data.screenshots)) {
           setScreenshots(
             data.screenshots.map(
-              (s: { name: string; timestamp: string | number; path: string }, idx: number) => {
-                // Try to find a matching mock for ocrText, gradient, label
+              (s: { name: string; timestamp: string | number; base64: string }, idx: number) => {
                 const mock = mockScreenshots[idx] || {};
                 return {
                   id: s.name || String(idx),
                   title: s.timestamp
-                    ? `Screenshot - ${new Date(s.timestamp).toLocaleTimeString()}`
+                    ? `${new Date(s.timestamp).toLocaleTimeString()}`
                     : mock.title || `Screenshot ${idx + 1}`,
                   ocrText: mock.ocrText || "No OCR text available.",
                   gradient: mock.gradient || "from-blue-500 to-purple-600",
                   label: mock.label || "Screenshot",
-                  dataUrl: s.path ? s.path : undefined,
+                  dataUrl: s.base64 ? s.base64 : undefined,
                   timestamp: s.timestamp,
                 };
               },
@@ -461,12 +460,6 @@ Participants: ${meetingData.participants.join(", ")}
 
 Transcripts:
 ${transcripts.join("\n")}
-
-OCR Results from Screenshots:
-${screenshots
-  .map((s) => s.ocrText)
-  .filter(Boolean)
-  .join("\n")}
 
 Please provide:
 1. Meeting Overview
@@ -1229,11 +1222,19 @@ Format as markdown with clear sections.`;
                           {highlightText(screenshot.title, screenshotSearchTerm)}
                         </div>
                         <div className="bg-gray-100 dark:bg-gray-800 rounded-lg p-2 mb-3">
-                          <div
-                            className={`w-full h-48 bg-gradient-to-r ${screenshot.gradient} rounded flex items-center justify-center text-white font-semibold`}
-                          >
-                            {screenshot.label}
-                          </div>
+                          {screenshot.dataUrl ? (
+                            <img
+                              src={`${screenshot.dataUrl}`}
+                              alt={screenshot.title}
+                              className="mt-2 rounded max-h-48 w-auto mx-auto"
+                            />
+                          ) : (
+                            <div
+                              className={`w-full h-48 bg-gradient-to-r ${screenshot.gradient} rounded flex items-center justify-center text-white font-semibold`}
+                            >
+                              {screenshot.label}
+                            </div>
+                          )}
                         </div>
                         <div className="text-xs text-muted-foreground">
                           <strong>OCR Text:</strong>{" "}

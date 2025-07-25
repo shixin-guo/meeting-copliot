@@ -23,7 +23,30 @@ dotenv.config();
 const app = express();
 const port = process.env.PORT || 3000;
 
-const storedTranscripts = [];
+// Remove in-memory transcript storage
+// const storedTranscripts = [];
+const TRANSCRIPTS_FILE = path.join(__dirname, "data", "transcripts.json");
+
+function readTranscriptsFromFile() {
+  try {
+    if (!fs.existsSync(TRANSCRIPTS_FILE)) return [];
+    const data = fs.readFileSync(TRANSCRIPTS_FILE, "utf-8");
+    return data ? JSON.parse(data) : [];
+  } catch (err) {
+    console.error("Failed to read transcripts file:", err);
+    return [];
+  }
+}
+
+function appendTranscriptToFile(entry) {
+  // let transcripts = readTranscriptsFromFile();
+  // transcripts.push(entry);
+  // try {
+  //   fs.writeFileSync(TRANSCRIPTS_FILE, JSON.stringify(transcripts, null, 2), "utf-8");
+  // } catch (err) {
+  //   console.error("Failed to write transcripts file:", err);
+  // }
+}
 
 const ZOOM_SECRET_TOKEN = process.env.ZOOM_SECRET_TOKEN;
 const CLIENT_ID = process.env.ZM_CLIENT_ID;
@@ -205,9 +228,10 @@ app.post("/api/verify-todos", (req, res) => {
 // New API endpoint to get all stored transcripts
 app.get("/api/transcripts", async (_req, res) => {
   try {
+    const transcripts = readTranscriptsFromFile();
     res.json({
-      transcripts: storedTranscripts,
-      count: storedTranscripts.length,
+      transcripts,
+      count: transcripts.length,
     });
   } catch (err) {
     console.error("Error in /api/transcripts:", err);
@@ -230,13 +254,41 @@ app.get("/api/screenshots", async (_req, res) => {
       .map((f) => ({
         name: f,
         timestamp: fs.statSync(path.join(recordingsDir, f)).mtime.getTime(),
-        path: `/recordings/${f}`,
+        path: path.join(recordingsDir, f),
       }))
       .sort((a, b) => b.timestamp - a.timestamp); // newest first
 
+    // Limit to latest 20 screenshots
+    const latestFiles = files.slice(0, 20);
+
+    // Convert images to base64
+    const screenshotsWithBase64 = await Promise.all(
+      latestFiles.map(async (file) => {
+        try {
+          const imageBuffer = fs.readFileSync(file.path);
+          const base64Data = imageBuffer.toString("base64");
+          const fileExtension = path.extname(file.name).toLowerCase();
+          const mimeType = fileExtension === ".png" ? "image/png" : "image/jpeg";
+
+          return {
+            name: file.name,
+            timestamp: file.timestamp,
+            base64: `data:${mimeType};base64,${base64Data}`,
+            size: imageBuffer.length,
+          };
+        } catch (error) {
+          console.error(`Error reading file ${file.name}:`, error);
+          return null;
+        }
+      }),
+    );
+
+    // Filter out any failed reads
+    const validScreenshots = screenshotsWithBase64.filter((screenshot) => screenshot !== null);
+
     res.json({
-      screenshots: files,
-      count: files.length,
+      screenshots: validScreenshots,
+      count: validScreenshots.length,
     });
   } catch (err) {
     console.error("Error in /api/screenshots:", err);
@@ -481,7 +533,7 @@ function connectToMediaWebSocket(mediaUrl, meetingUuid, streamId, signalingSocke
             console.warn(`⚠️ Skipping small JPEG (${buffer.length} bytes)`);
             return;
           }
-          if (frameCounter <= 10) {
+          if (frameCounter <= 100) {
             console.log(`⏭️ Skipping initial JPEG frame #${frameCounter}`);
             return;
           }
@@ -510,7 +562,7 @@ function connectToMediaWebSocket(mediaUrl, meetingUuid, streamId, signalingSocke
           timestamp: Date.now(),
           content: msg.content.data,
         };
-        storedTranscripts.push(transcriptEntry);
+        appendTranscriptToFile(transcriptEntry);
 
         //    const result = await askLLMWithTranscript( msg.content.data);
 
