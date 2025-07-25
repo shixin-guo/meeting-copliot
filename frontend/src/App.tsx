@@ -52,7 +52,7 @@ function App() {
   // State for dialog and meeting status
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   type MeetingStep = "before" | "in" | "after";
-  const [meetingStep, setMeetingStep] = useState<MeetingStep>("before");
+  const [meetingStep, setMeetingStep] = useState<MeetingStep>("after");
 
   // State for live transcripts
   type TranscriptLine = {
@@ -342,7 +342,7 @@ function App() {
   // Mock meeting data for the follow-up component
   const mockMeetingData = {
     id: "meeting-123",
-    title: "Team Sync Meeting",
+    title: "Zoom AI features demo",
     date: new Date(),
     participants: ["john@example.com", "jane@example.com", "bob@example.com"],
     transcripts: transcripts,

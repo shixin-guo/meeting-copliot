@@ -76,6 +76,7 @@ import { Toggle } from "@/components/ui/toggle";
 import { InsightTopic } from "@/components/ui/insight-topic";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { AIMessage, AIMessageAvatar, AIMessageContent } from "@/components/ui/kibo-ui/ai/message";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface MeetingData {
   id: string;
@@ -630,12 +631,43 @@ Format as markdown with clear sections.`;
 
   const handleClearInput = () => setInput("");
 
+  const [isSummaryLoading, setIsSummaryLoading] = useState(true);
+  const [isNextStepsLoading, setIsNextStepsLoading] = useState(true);
+  const [isVideoLoading, setIsVideoLoading] = useState(true);
+  const [isTitleLoading, setIsTitleLoading] = useState(true);
+
+  useEffect(() => {
+    // summary: 5-6s
+    const summaryDelay = 5000 + Math.random() * 1000;
+    // next steps: 5.5-7s
+    const nextStepsDelay = 5500 + Math.random() * 1500;
+    // video: 7-9s
+    const videoDelay = 7000 + Math.random() * 2000;
+    const summaryTimer = setTimeout(() => setIsSummaryLoading(false), summaryDelay);
+    const nextStepsTimer = setTimeout(() => setIsNextStepsLoading(false), nextStepsDelay);
+    const videoTimer = setTimeout(() => setIsVideoLoading(false), videoDelay);
+    // title: 1s (simulate loading)
+    const titleTimer = setTimeout(() => setIsTitleLoading(false), 1000);
+    return () => {
+      clearTimeout(summaryTimer);
+      clearTimeout(nextStepsTimer);
+      clearTimeout(videoTimer);
+      clearTimeout(titleTimer);
+    };
+  }, []);
+
   return (
     <div className="max-w-7xl mx-auto p-6 space-y-6 z-60">
       {/* Header with title and action buttons */}
       <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4 mb-2">
         <div className="flex-1">
-          <h1 className="text-3xl font-bold">{meetingData.title}</h1>
+          <h1 className="text-3xl font-bold">
+            {isTitleLoading ? (
+              <Skeleton className="h-10 w-64 mb-2" />
+            ) : (
+              meetingData.title
+            )}
+          </h1>
           <div className="text-muted-foreground mt-1 text-sm flex items-center gap-2">
             <div className=" flex -space-x-2 ">
               <Avatar>
@@ -1044,24 +1076,30 @@ Format as markdown with clear sections.`;
         {/* Video Player and Summary - Left Side */}
         <div className="w-2/3 space-y-6">
           {/* Video Player */}
-          <VideoPlayer className="overflow-hidden rounded-lg border">
-            <VideoPlayerContent
-              crossOrigin=""
-              muted
-              preload="auto"
-              slot="media"
-              src="https://stream.mux.com/DS00Spx1CV902MCtPj5WknGlR102V5HFkDe/high.mp4"
-            />
-            <VideoPlayerControlBar>
-              <VideoPlayerPlayButton />
-              <VideoPlayerSeekBackwardButton />
-              <VideoPlayerSeekForwardButton />
-              <VideoPlayerTimeRange />
-              <VideoPlayerTimeDisplay showDuration />
-              <VideoPlayerMuteButton />
-              <VideoPlayerVolumeRange />
-            </VideoPlayerControlBar>
-          </VideoPlayer>
+          {isVideoLoading ? (
+            <div className="animate-pulse h-[442px] bg-muted/50 rounded flex items-center justify-center text-lg text-muted-foreground">
+              Analyzing video...
+            </div>
+          ) : (
+            <VideoPlayer className="overflow-hidden rounded-lg border">
+              <VideoPlayerContent
+                crossOrigin=""
+                muted
+                preload="auto"
+                slot="media"
+                src="http://localhost:3789/recordings/videos/output.mp4"
+              />
+              <VideoPlayerControlBar>
+                <VideoPlayerPlayButton />
+                <VideoPlayerSeekBackwardButton />
+                <VideoPlayerSeekForwardButton />
+                <VideoPlayerTimeRange />
+                <VideoPlayerTimeDisplay showDuration />
+                <VideoPlayerMuteButton />
+                <VideoPlayerVolumeRange />
+              </VideoPlayerControlBar>
+            </VideoPlayer>
+          )}
 
           {/* Summary Section */}
           <Card className="py-4 gap-2">
@@ -1071,7 +1109,7 @@ Format as markdown with clear sections.`;
               </CardTitle>
               <Button
                 onClick={generateMeetingSummary}
-                disabled={isGeneratingSummary}
+                disabled={isGeneratingSummary || isSummaryLoading}
                 variant="outline"
               >
                 <Sparkles className="w-4 h-4 mr-2 text-blue-500" />
@@ -1079,12 +1117,18 @@ Format as markdown with clear sections.`;
               </Button>
             </CardHeader>
             <CardContent className="px-4">
-              <Textarea
-                value={meetingSummary}
-                onChange={(e) => setMeetingSummary(e.target.value)}
-                placeholder="Summary will be generated here..."
-                className="min-h-[200px] font-mono text-sm"
-              />
+              {isSummaryLoading ? (
+                <div className="animate-pulse h-[278px] bg-muted/50 rounded flex items-center justify-center text-lg text-muted-foreground">
+                  Analyzing meeting summary...
+                </div>
+              ) : (
+                <Textarea
+                  value={meetingSummary}
+                  onChange={(e) => setMeetingSummary(e.target.value)}
+                  placeholder="Summary will be generated here..."
+                  className="min-h-[200px] font-mono text-sm"
+                />
+              )}
             </CardContent>
           </Card>
         </div>
@@ -1112,21 +1156,25 @@ Format as markdown with clear sections.`;
                       Topics:
                     </div>
                     <div className="flex flex-wrap gap-2">
-                      {[
-                        "Conversation",
-                        "ErrorOCR",
-                        "Implementation",
-                        "Account Subtype",
-                        "Sentiment Service",
-                        "Gainsight Integration",
-                        "Scorecard Deletion",
-                        "Digest Email",
-                        "Demo Support",
-                      ].map((topic) => (
-                        <Badge key={topic} variant="outline">
-                          {topic}
-                        </Badge>
-                      ))}
+                      {isNextStepsLoading ? (
+                        <div className="animate-pulse h-[100px] w-full bg-muted/50 rounded" >Generating next steps...</div>
+                      ) : (
+                        [
+                          "Conversation",
+                          "ErrorOCR",
+                          "Implementation",
+                          "Account Subtype",
+                          "Sentiment Service",
+                          "Gainsight Integration",
+                          "Scorecard Deletion",
+                          "Digest Email",
+                          "Demo Support",
+                        ].map((topic) => (
+                          <Badge key={topic} variant="outline">
+                            {topic}
+                          </Badge>
+                        ))
+                      )}
                     </div>
                   </div>
                   {/* Next Steps suggestions - improved layout */}
@@ -1134,12 +1182,18 @@ Format as markdown with clear sections.`;
                     <div className="text-base font-bold mb-2 text-muted-foreground text-left">
                       Next Steps
                     </div>
-                    <ul className="list-disc pl-5 text-sm text-muted-foreground space-y-1">
-                      <li>Review and finalize the API documentation by end of week.</li>
-                      <li>Schedule a stakeholder review meeting for next Tuesday.</li>
-                      <li>Complete mobile app wireframes and share with the team.</li>
-                      <li>Integrate Sentiment Service feedback into the next product iteration.</li>
-                    </ul>
+                    {isNextStepsLoading ? (
+                      <div className="animate-pulse h-[200px] bg-muted/50 rounded flex items-center justify-center text-base text-muted-foreground">
+                        Generating next steps...
+                      </div>
+                    ) : (
+                      <ul className="list-disc pl-5 text-sm text-muted-foreground space-y-1">
+                        <li>Review and finalize the API documentation by end of week.</li>
+                        <li>Schedule a stakeholder review meeting for next Tuesday.</li>
+                        <li>Complete mobile app wireframes and share with the team.</li>
+                        <li>Integrate Sentiment Service feedback into the next product iteration.</li>
+                      </ul>
+                    )}
                   </div>
                   <div className="text-base font-bold mb-2 text-muted-foreground text-left">
                     Competitor Mentioned
@@ -1170,7 +1224,7 @@ Format as markdown with clear sections.`;
                 <div className="flex-1 overflow-y-auto space-y-4">
                   {filteredTranscripts.length > 0 ? (
                     filteredTranscripts.map((transcript) => (
-                      <div key={transcript.id} className="p-3 border rounded-lg bg-muted/50">
+                      <div key={transcript.id} className="p-1 rounded-lg mb-0">
                         <div className="text-sm text-muted-foreground mb-2">
                           {highlightText(transcript.title, transcriptSearchTerm)}
                         </div>
@@ -1217,7 +1271,7 @@ Format as markdown with clear sections.`;
                 <div className="flex-1 overflow-y-auto space-y-4">
                   {filteredScreenshots.length > 0 ? (
                     filteredScreenshots.map((screenshot) => (
-                      <div key={screenshot.id} className="p-3 border rounded-lg bg-muted/50">
+                      <div key={screenshot.id} className="p-2 rounded-lg bg-muted/50">
                         <div className="text-sm text-muted-foreground mb-2">
                           {highlightText(screenshot.title, screenshotSearchTerm)}
                         </div>
@@ -1226,7 +1280,7 @@ Format as markdown with clear sections.`;
                             <img
                               src={`${screenshot.dataUrl}`}
                               alt={screenshot.title}
-                              className="mt-2 rounded max-h-48 w-auto mx-auto"
+                              className="rounded max-h-48 w-auto"
                             />
                           ) : (
                             <div

@@ -10,6 +10,7 @@ import { WebSocketServer } from "ws";
 import { preloadRetrieverOnce, askLLMWithTranscript } from "./ragPipeline.js";
 import cors from "cors";
 import { extractTodosWithOpenRouter } from "./chatWithOpenaiJson.js";
+import { saveRawVideo } from "./saveRawVideo.js";
 
 await preloadRetrieverOnce();
 
@@ -22,6 +23,16 @@ dotenv.config();
 
 const app = express();
 const port = process.env.PORT || 3000;
+
+// 为 /recordings 路径下的请求加上 CORS 响应头
+app.use('/recordings', (req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET,OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  next();
+});
+// 静态服务 recordings 目录，供前端访问视频文件
+app.use('/recordings', express.static(path.join(__dirname, 'recordings')));
 
 // Remove in-memory transcript storage
 // const storedTranscripts = [];
@@ -471,11 +482,15 @@ function connectToMediaWebSocket(mediaUrl, meetingUuid, streamId, signalingSocke
       }
 
       // Handle video data
-      if (msg.msg_type === 15 && msg.content && msg.content.data) {
-        const { user_id, user_name, data: videoData, timestamp } = msg.content;
-        const buffer = Buffer.from(videoData, "base64");
-        //let timestamp = Date.now();
-        //console.log('Video data received');
+  
+        // Handle video data
+        if (msg.msg_type === 15 && msg.content && msg.content.data) {
+             
+
+          let { user_id, user_name, data: videoData, timestamp } = msg.content;
+          let buffer = Buffer.from(videoData, 'base64');
+          console.log('Video data received');
+          saveRawVideo(buffer, user_name, timestamp, meetingUuid);
       }
 
       if (msg.msg_type === 16 && msg.content && msg.content.data) {
@@ -533,16 +548,16 @@ function connectToMediaWebSocket(mediaUrl, meetingUuid, streamId, signalingSocke
             console.warn(`⚠️ Skipping small JPEG (${buffer.length} bytes)`);
             return;
           }
-          if (frameCounter <= 100) {
+          if (frameCounter <= 1000) {
             console.log(`⏭️ Skipping initial JPEG frame #${frameCounter}`);
             return;
           }
 
           fs.writeFileSync(filePath, buffer);
-          console.log(`💾 Saved JPEG to: ${filePath}`);
+          // console.log(`💾 Saved JPEG to: ${filePath}`);
         } else if (fileType === "png") {
           fs.writeFileSync(filePath, buffer);
-          console.log(`💾 Saved PNG to: ${filePath}`);
+          // console.log(`💾 Saved PNG to: ${filePath}`);
         } else if (fileType === "h264") {
           // Reuse the same .h264 file — append data
           const h264FilePath = path.join(recordingsDir, `${safeUserId}.h264`);
