@@ -21,6 +21,7 @@ An intelligent AI-powered meeting assistant that enhances your Zoom meetings wit
 - One-click screenshot capture during meetings
 - OCR text extraction using OpenRouter/Gemini Vision
 - Automatic content analysis and markdown formatting
+- **NEW**: OCR content automatically included in AI responses when asking questions
 
 📊 **Post-Meeting Intelligence**
 - Comprehensive meeting summaries
@@ -116,7 +117,7 @@ OPENROUTER_API_KEY=your_openrouter_api_key
    - Take screenshots for later analysis
    - Monitor live transcription
    - Create and manage todos
-   - Ask AI questions about meeting content
+   - Ask AI questions about meeting content (screenshot OCR automatically included)
 
 3. **Post-Meeting**
    - Review generated meeting summary
@@ -168,7 +169,7 @@ The backend server provides several API endpoints:
 - `WebSocket /ws` - Real-time transcript streaming
 
 ### AI & Analysis
-- `POST /api/ask-kb` - Query knowledge base with meeting context
+- `POST /api/ask-kb` - Query knowledge base with meeting context (supports optional `ocrResult` parameter)
 - `POST /api/llm-direct` - Direct LLM chat interface
 - `POST /api/extract-todos` - Extract todos from text using AI
 

@@ -86,6 +86,15 @@ interface MeetingData {
   summary?: string;
 }
 
+// Default meeting data for the demo scenario
+const defaultMeetingData: MeetingData = {
+  id: "demo-meeting-001",
+  title: "AI Meeting Copilot Product Demo with Enterprise Client",
+  date: new Date("2024-01-15T14:00:00"),
+  participants: ["shixin.guo@company.com", "eric.yuan@zoom.com", "sarah.tech@client.com", "mike.cto@client.com"],
+  summary: "Product demonstration meeting showcasing AI Meeting Copilot features to potential enterprise client. Discussion covered API integration, real-time AI capabilities, and competitive advantages."
+};
+
 interface FollowUpAction {
   id: string;
   type: "email" | "task" | "document" | "meeting";
@@ -102,7 +111,7 @@ interface PostMeetingFollowUpProps {
   onClose?: () => void;
 }
 
-const PostMeetingFollowUp: React.FC<PostMeetingFollowUpProps> = ({ meetingData }) => {
+const PostMeetingFollowUp: React.FC<PostMeetingFollowUpProps> = ({ meetingData = defaultMeetingData }) => {
   const [emailContent, setEmailContent] = useState("");
   const [emailSubject, setEmailSubject] = useState("");
   const [emailRecipients, setEmailRecipients] = useState<string[]>([]);
@@ -118,7 +127,52 @@ const PostMeetingFollowUp: React.FC<PostMeetingFollowUpProps> = ({ meetingData }
 
   const [isGeneratingEmail, setIsGeneratingEmail] = useState(false);
   const [isGeneratingSummary, setIsGeneratingSummary] = useState(false);
-  const [meetingSummary, setMeetingSummary] = useState(meetingData.summary || "");
+  const [meetingSummary, setMeetingSummary] = useState(meetingData.summary || `# AI Meeting Copilot Product Demo - Meeting Summary
+
+## Meeting Overview
+**Date:** January 15, 2024  
+**Duration:** 45 minutes  
+**Participants:** Shixin Guo (Sales Rep), Eric Yuan (Zoom), Sarah Tech (Client Tech Lead), Mike CTO (Client CTO)
+
+## Key Discussion Points
+
+### 1. Product Demonstration
+- **AI-Powered Meeting Preparation**: Showcased intelligent document processing with RAG pipeline
+- **Real-Time AI Assistant**: Demonstrated live transcription, sentiment analysis, and Q&A capabilities
+- **Smart Screenshot Analysis**: Highlighted OCR functionality for technical diagrams and documentation
+
+### 2. Technical Integration Discussion
+- **API Rate Limits**: Eric inquired about current API limitations and scaling capabilities
+- **Security & Compliance**: Sarah raised concerns about data privacy and enterprise security requirements
+- **Custom AI Model Training**: Mike asked about organization-specific model customization options
+
+### 3. Competitive Analysis
+- **Market Positioning**: Discussed how AI Meeting Copilot differentiates from existing solutions
+- **Feature Comparison**: Compared real-time AI capabilities vs. post-meeting processing
+- **Enterprise Readiness**: Addressed scalability and integration with existing business tools
+
+## Decisions Made
+- **Pilot Program**: Client agreed to 30-day pilot program with 50 users
+- **Technical Review**: Scheduled follow-up technical deep-dive session for next week
+- **Customization Scope**: Defined requirements for organization-specific AI model training
+
+## Action Items
+1. **Shixin**: Prepare pilot program documentation and user onboarding materials
+2. **Eric**: Review API rate limit requirements and provide scaling roadmap
+3. **Sarah**: Conduct security assessment and compliance review
+4. **Mike**: Define custom AI model training requirements and timeline
+
+## Next Steps
+- **Week 1**: Complete pilot program setup and user provisioning
+- **Week 2**: Conduct technical review session with engineering teams
+- **Week 3**: Begin custom AI model training process
+- **Week 4**: Pilot program launch and user training
+
+## Important Notes
+- Client showed strong interest in real-time AI capabilities during meetings
+- Security and compliance requirements will be critical for enterprise deployment
+- Custom AI model training feature was a key differentiator for the client
+- API integration capabilities need to be thoroughly documented for technical teams`);
 
   const [conversation, setConversation] = useState<Array<{ role: "user" | "ai"; content: string }>>(
     [],
@@ -172,39 +226,39 @@ const PostMeetingFollowUp: React.FC<PostMeetingFollowUpProps> = ({ meetingData }
   //   },
   // ];
 
-  // Mock screenshot data
+  // Mock screenshot data for the demo scenario
   const mockScreenshots = [
     {
       id: 1,
-      title: "Screenshot 1 - Dashboard Overview (05:30)",
+      title: "Screenshot 1 - AI Meeting Copilot Dashboard (14:05)",
       ocrText:
-        "Q1 Performance Metrics - Revenue: $2.3M (+15% YoY), Users: 45K (+22% YoY), Conversion Rate: 3.2%",
+        "AI Meeting Copilot Dashboard - Real-time transcription, Sentiment analysis: 85% positive, Active participants: 4, AI insights: 12 generated",
       gradient: "from-blue-500 to-purple-600",
-      label: "Dashboard Screenshot",
+      label: "AI Dashboard",
     },
     {
       id: 2,
-      title: "Screenshot 2 - Mobile App Mockup (12:15)",
+      title: "Screenshot 2 - Technical Architecture Diagram (14:15)",
       ocrText:
-        "Mobile App Navigation - Home, Dashboard, Profile, Settings - Touch-friendly interface with 44px minimum touch targets",
+        "System Architecture - RAG Pipeline, OpenAI Integration, Real-time Processing, API Rate Limits: 1000 req/hour, Custom AI Models: Supported",
       gradient: "from-green-500 to-teal-600",
-      label: "Mobile App Design",
+      label: "Technical Diagram",
     },
     {
       id: 3,
-      title: "Screenshot 3 - API Documentation (15:45)",
+      title: "Screenshot 3 - Security & Compliance Overview (14:25)",
       ocrText:
-        "REST API v2.1 - Authentication endpoints, User management, Data export functions - Rate limiting: 1000 requests/hour",
+        "Security Features - SOC 2 Type II, GDPR Compliant, End-to-end encryption, Enterprise SSO, Data residency options",
       gradient: "from-orange-500 to-red-600",
-      label: "API Documentation",
+      label: "Security Overview",
     },
     {
       id: 4,
-      title: "Screenshot 4 - User Feedback Summary (20:30)",
+      title: "Screenshot 4 - Pilot Program Timeline (14:35)",
       ocrText:
-        "User Satisfaction Survey Results - Overall Score: 4.6/5, Ease of Use: 4.4/5, Feature Requests: 156 submitted",
+        "30-Day Pilot Program - Week 1: Setup & Provisioning, Week 2: Technical Review, Week 3: Custom AI Training, Week 4: Launch & Training",
       gradient: "from-purple-500 to-pink-600",
-      label: "Feedback Dashboard",
+      label: "Pilot Timeline",
     },
   ];
   // Remove mockTranscripts and mockScreenshots, add state for API data
@@ -223,7 +277,7 @@ const PostMeetingFollowUp: React.FC<PostMeetingFollowUpProps> = ({ meetingData }
     }>
   >([]);
 
-  // Mock comments data
+  // Mock comments data for the demo scenario
   const mockComments: {
     from: "user" | "assistant";
     content: string;
@@ -233,56 +287,56 @@ const PostMeetingFollowUp: React.FC<PostMeetingFollowUpProps> = ({ meetingData }
     {
       from: "user",
       content:
-        "Great meeting! The Q1 metrics look really promising. I think we should focus more on the mobile app development for Q2.",
+        "Excellent demo! The real-time AI capabilities really impressed the client. The pilot program agreement is a huge win.",
       avatar: "https://github.com/shadcn.png",
-      name: "John Smith",
+      name: "Shixin Guo",
     },
     {
       from: "assistant",
       content:
-        "I agree, the mobile app beta launch should be our top priority. The user feedback shows strong demand for mobile functionality.",
+        "Absolutely! The client's interest in the custom AI model training feature was particularly strong. This could be a key differentiator for enterprise deals.",
       avatar: "https://github.com/openai.png",
       name: "AI Assistant",
     },
     {
       from: "user",
       content:
-        "The API documentation looks comprehensive. Should we schedule a technical review session next week?",
+        "Eric's questions about API rate limits were spot on. We need to prepare detailed documentation for the technical review next week.",
       avatar: "https://github.com/leerob.png",
-      name: "Sarah Johnson",
+      name: "Eric Yuan",
     },
     {
       from: "assistant",
       content:
-        "That's a good idea. I can help prepare the technical review agenda based on the API documentation we discussed.",
+        "I've noted the API documentation requirement. I can help prepare a comprehensive technical overview including rate limits, scaling capabilities, and integration examples.",
       avatar: "https://github.com/openai.png",
       name: "AI Assistant",
     },
     {
       from: "user",
       content:
-        "The dashboard redesign feedback is very positive. Users love the new layout and improved performance.",
+        "Sarah's security concerns are valid. We should prioritize the compliance review and prepare our SOC 2 documentation.",
       avatar: "https://github.com/evilrabbit.png",
-      name: "Mike Chen",
+      name: "Sarah Tech",
     },
     {
       from: "assistant",
       content:
-        "Excellent! The 95% satisfaction rate is impressive. We should document these improvements for future reference.",
+        "Security and compliance will be critical for enterprise deployment. I recommend scheduling a dedicated security review session with our compliance team.",
       avatar: "https://github.com/openai.png",
       name: "AI Assistant",
     },
     {
       from: "user",
       content:
-        "I'll follow up on the action items. Sarah for API docs, Mike for mobile wireframes, and I'll schedule the stakeholder review.",
+        "The 30-day pilot program with 50 users is a great starting point. Let's make sure the onboarding process is smooth.",
       avatar: "https://github.com/shadcn.png",
-      name: "John Smith",
+      name: "Mike CTO",
     },
     {
       from: "assistant",
       content:
-        "Perfect! I've noted all the action items. Would you like me to send reminder notifications for the upcoming deadlines?",
+        "Perfect! I've created a pilot program checklist. Would you like me to send the onboarding materials and user provisioning timeline?",
       avatar: "https://github.com/openai.png",
       name: "AI Assistant",
     },
@@ -667,16 +721,20 @@ Format as markdown with clear sections.`;
           <div className="text-muted-foreground mt-1 text-sm flex items-center gap-2">
             <div className=" flex -space-x-2 ">
               <Avatar>
-                <AvatarImage src="https://github.com/shadcn.png" alt="John Smith" />
-                <AvatarFallback>JS</AvatarFallback>
+                <AvatarImage src="https://github.com/shadcn.png" alt="Shixin Guo" />
+                <AvatarFallback>SG</AvatarFallback>
               </Avatar>
               <Avatar>
-                <AvatarImage src="https://github.com/leerob.png" alt="Jane Johnson" />
-                <AvatarFallback>JJ</AvatarFallback>
+                <AvatarImage src="https://github.com/leerob.png" alt="Eric Yuan" />
+                <AvatarFallback>EY</AvatarFallback>
               </Avatar>
               <Avatar>
-                <AvatarImage src="https://github.com/evilrabbit.png" alt="Bob Chen" />
-                <AvatarFallback>BC</AvatarFallback>
+                <AvatarImage src="https://github.com/evilrabbit.png" alt="Sarah Tech" />
+                <AvatarFallback>ST</AvatarFallback>
+              </Avatar>
+              <Avatar>
+                <AvatarImage src="https://github.com/shadcn.png" alt="Mike CTO" />
+                <AvatarFallback>MC</AvatarFallback>
               </Avatar>
             </div>
             <span className="text-muted-foreground ml-2">
@@ -1158,15 +1216,15 @@ Format as markdown with clear sections.`;
                         </div>
                       ) : (
                         [
-                          "Conversation",
-                          "ErrorOCR",
-                          "Implementation",
-                          "Account Subtype",
-                          "Sentiment Service",
-                          "Gainsight Integration",
-                          "Scorecard Deletion",
-                          "Digest Email",
-                          "Demo Support",
+                          "Product Demo",
+                          "API Integration",
+                          "Security & Compliance",
+                          "Custom AI Models",
+                          "Pilot Program",
+                          "Technical Review",
+                          "Enterprise Features",
+                          "Competitive Analysis",
+                          "Sales Process",
                         ].map((topic) => (
                           <Badge key={topic} variant="outline">
                             {topic}
@@ -1186,12 +1244,10 @@ Format as markdown with clear sections.`;
                       </div>
                     ) : (
                       <ul className="list-disc pl-5 text-sm text-muted-foreground space-y-1">
-                        <li>Review and finalize the API documentation by end of week.</li>
-                        <li>Schedule a stakeholder review meeting for next Tuesday.</li>
-                        <li>Complete mobile app wireframes and share with the team.</li>
-                        <li>
-                          Integrate Sentiment Service feedback into the next product iteration.
-                        </li>
+                        <li>Prepare pilot program documentation and user onboarding materials.</li>
+                        <li>Schedule technical review session with engineering teams for next week.</li>
+                        <li>Conduct security assessment and compliance review with Sarah.</li>
+                        <li>Define custom AI model training requirements and timeline with Mike.</li>
                       </ul>
                     )}
                   </div>

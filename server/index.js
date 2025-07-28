@@ -138,12 +138,21 @@ app.post(WEBHOOK_PATH, (req, res) => {
 
 // New API endpoint to ask LLM with transcript
 app.post("/api/ask-kb", async (req, res) => {
-  const { question } = req.body;
+  const { question, ocrResult } = req.body;
   if (!question || typeof question !== "string") {
     return res.status(400).json({ error: "Missing or invalid question" });
   }
+  
+  console.log("🤖 AI Request received:");
+  console.log("Question:", question);
+  if (ocrResult) {
+    console.log("OCR Result included:", ocrResult.substring(0, 100) + "...");
+  } else {
+    console.log("No OCR result provided");
+  }
+  
   try {
-    const answer = await askLLMWithTranscript(question);
+    const answer = await askLLMWithTranscript(question, ocrResult);
     res.json({ answer });
   } catch (err) {
     console.error("Error in /api/ask-kb:", err);
