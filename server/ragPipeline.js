@@ -76,9 +76,7 @@ export async function askLLMWithTranscript(transcript) {
   <instruction>
     Use the context to answer the customer's question from the transcript.
     Your answer should be helpful, concise, and formatted in bullet points.
-    Do not hallucinate. Only respond using information from the transcript or context.
-    use markdown format to answer the question.
-    if the question is not related to the context, say "I'm sorry, I don't have information about that."
+    use markdown format to answer the question."
   </instruction>
 </scenario>
 `.trim();

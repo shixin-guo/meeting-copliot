@@ -94,10 +94,11 @@ const MeetingAIInput = ({
   };
 
   // Dropdown actions
-  const handleImportContract = () => {
-    setText((prev) => `${prev + (prev ? "\n" : "")}[Imported Contract Placeholder]`);
+  const handleImportContract = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    setText((prev) => `${prev + (prev ? "\n" : "")}@Eric Yuan`);
     if (onContentChange) {
-      onContentChange(`${text + (text ? "\n" : "")}[Imported Contract Placeholder]`);
+      onContentChange(`${text + (text ? "\n" : "")}@Eric Yuan`);
     }
   };
   const handleInsertPrevNextSteps = (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -126,7 +127,8 @@ const MeetingAIInput = ({
   };
 
   // Search button handler (no loading)
-  const handleSearchClick = () => {
+  const handleSearchClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
     // Implement search logic here if needed
   };
 
@@ -140,7 +142,9 @@ const MeetingAIInput = ({
         fetch("http://localhost:3789/api/llm-direct", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ message: text }),
+          body: JSON.stringify({
+            message: `help prepare for a meeting and give me some information about the invitee  and the agenda. here is the meeting details: ${text}`,
+          }),
         }),
         fetch("http://localhost:3789/api/extract-todos", {
           method: "POST",

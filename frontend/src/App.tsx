@@ -12,10 +12,11 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { ManagementBar } from "@/components/animate-ui/ui-elements/management-bar";
-import { Video, Sparkles, Copy, X, Sun, Moon } from "lucide-react";
+import { Video, Sparkles, ClipboardList, MessageCircle, Sun, Moon, Star, X } from "lucide-react";
 import MeetingAIInput from "@/components/ui/ask-ai-input";
 import { parseZoomMeetingLink } from "@/lib/utils";
 import PostMeetingFollowUp from "@/components/PostMeetingFollowUp";
+
 function App() {
   const client = ZoomMtgEmbedded.createClient();
 
@@ -52,7 +53,7 @@ function App() {
   // State for dialog and meeting status
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   type MeetingStep = "before" | "in" | "after";
-  const [meetingStep, setMeetingStep] = useState<MeetingStep>("after");
+  const [meetingStep, setMeetingStep] = useState<MeetingStep>("before");
 
   // State for live transcripts
   type TranscriptLine = {
@@ -158,7 +159,7 @@ function App() {
   async function fetchOcrResult(imageDataUrl: string): Promise<string> {
     console.log("fetchOcrResult");
     try {
-      const API_KEY = import.meta.env.VITE_OPENROUTER_API_KEY; // Replace with your key
+      const API_KEY = import.meta.env.VITE_NEW_OPENROUTER_API_KEY; // Replace with your key
       const MODEL = "google/gemini-2.0-flash-001"; // Or another vision model you have access to
 
       const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
@@ -369,6 +370,110 @@ function App() {
     });
   };
 
+  const features = [
+    {
+      icon: <Star className="h-7 w-7 text-blue-500" />,
+      title: "AI Meeting Preparation",
+      stage: "prepare",
+      points: [
+        "Chat with AI before meetings",
+        "Auto-extract todos",
+        "Set goals and agenda",
+        "Import and analyze documents",
+      ],
+    },
+    {
+      icon: <MessageCircle className="h-7 w-7 text-green-500" />,
+      title: "Real-time Analysis Conversation",
+      stage: "in",
+      points: ["Customize Analyze visuals", "Extract Action Items(Todos)", "OCR for screenshots"],
+    },
+    {
+      icon: <Sparkles className="h-7 w-7 text-yellow-500" />,
+      title: "AI Meeting Assistant",
+      stage: "in",
+      points: ["Live Q&A", "Context-aware answers", "Knowledge base support"],
+    },
+    {
+      icon: <Video className="h-7 w-7 text-pink-500" />,
+      title: "AI Meeting Insights",
+      stage: "post",
+      points: [
+        "Meeting summary",
+        "Ask Anything about the meeting",
+        "Email / Calendar follow-up",
+        "Detect Competitors",
+        "Analyze sentiment Score",
+        "Highlight key moments",
+        "Recognize tasks / action items",
+        "Task management",
+      ],
+    },
+  ];
+
+  function FeatureLanding() {
+    const stages = [
+      { key: "prepare", label: "Prepare Meeting" },
+      { key: "in", label: "In-Meeting" },
+      { key: "post", label: "Post-Meeting" },
+    ];
+    return (
+      <section className="w-full h-screen flex flex-col items-center justify-center px-4 pt-20 pb-8 bg-gradient-to-br from-white to-blue-50 dark:from-background dark:to-blue-950 overflow-y-auto">
+        {/* Main Title Section */}
+        <div className="text-center mb-8">
+          <h1 className="text-6xl md:text-7xl font-extrabold mb-6 flex items-center justify-center gap-4">
+            <Sparkles className="h-12 w-12 text-blue-500 animate-bounce" />
+            Meetings AI Copilot
+          </h1>
+
+          <p className="text-xl md:text-2xl text-gray-600 dark:text-gray-300 max-w-4xl mx-auto leading-relaxed">
+            Supercharge your meetings with real-time AI assistance, smart insights, and seamless
+            collaboration.
+          </p>
+        </div>
+
+        {/* Features Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 w-full max-w-7xl">
+          {stages.map((stage) => {
+            return (
+              <div key={stage.key} className="flex flex-col">
+                <div className="text-center mb-6">
+                  <h3 className="text-3xl font-bold text-blue-700 dark:text-blue-300 mb-2">
+                    {stage.label}
+                  </h3>
+                  <div className="w-16 h-1 bg-blue-500 mx-auto rounded-full" />
+                </div>
+                <div className="space-y-4">
+                  {features
+                    .filter((f) => f.stage === stage.key)
+                    .map((feature) => (
+                      <>
+                        <div
+                          key={feature.title}
+                          className="bg-white/90 dark:bg-gray-900/90 rounded-2xl shadow-xl p-6 flex flex-col items-start border border-gray-200 dark:border-gray-700 hover:scale-[1.02] transition-all duration-300 hover:shadow-2xl"
+                        >
+                          <h4 className="text-xl font-bold mb-3 text-gray-900 dark:text-white">
+                            {feature.title}
+                          </h4>
+                          <ul className="list-disc pl-5 space-y-2 text-gray-700 dark:text-gray-300">
+                            {feature.points.map((point) => (
+                              <li key={point} className="text-sm">
+                                {point}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      </>
+                    ))}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </section>
+    );
+  }
+
   return (
     <div className="App min-h-screen bg-background">
       {/* Dark mode toggle button top right corner */}
@@ -384,104 +489,110 @@ function App() {
       </div>
 
       {meetingStep === "before" && (
-        <div className="fixed top-0 w-full h-full flex justify-center">
-          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-            <DialogTrigger asChild>
-              <Button variant="outline" className="bg-background/90 backdrop-blur-sm mx-auto">
-                <Sparkles className="mr-2 h-5 w-5 text-blue-500" />
-                AI Copilot Meeting Prep
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-3xl px-6 py-8">
-              <DialogHeader>
-                <DialogTitle className="flex items-center gap-2">
-                  <Sparkles className="h-6 w-6 text-blue-500" />
-                  AI Copilot Meeting Preparation
-                </DialogTitle>
-                <DialogDescription>
-                  You can use this AI input to customize your AI agent. Tell the AI what you want
-                  help with during this meeting—such as inviting people, creating a todo list, or
-                  summarizing key points.
-                </DialogDescription>
-              </DialogHeader>
-              {/* Only AI input remains above, meeting join row below */}
-              <div className="flex flex-col gap-6 mt-4">
-                <MeetingAIInput
-                  onContentChange={(content) => {
-                    console.log("MeetingAIInput content:", content);
-                  }}
-                  onFilesChange={(files) => {
-                    console.log("MeetingAIInput files:", files);
-                  }}
-                  onTodosChange={(newTodos) => {
-                    setTodos((prev) => [
-                      ...newTodos.map((content) => ({
-                        id: `${Date.now()}-${Math.random()}`,
-                        content,
-                        completed: false,
-                      })),
-                      ...prev,
-                    ]);
-                  }}
-                />
-              </div>
-              {/* Clipboard + Start Meeting row */}
-              <div className="flex flex-row items-center gap-3 mt-6 pt-4 border-t w-full justify-between">
-                {/* Left: Copy button and tip/error */}
-                <div className="flex items-center gap-2">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={handleReadClipboard}
-                    disabled={isReadingClipboard}
-                    title="Paste Zoom meeting link from clipboard"
-                  >
-                    <Copy className="text-muted-foreground" />
-                  </Button>
-                  {!clipboardMeeting && (
-                    <span className="text-xs text-gray-400">
-                      Paste meeting link here
-                      {clipboardError && (
-                        <span className="ml-2 text-red-500">{clipboardError}</span>
-                      )}
-                    </span>
-                  )}
-                  {clipboardMeeting && (
-                    <div className="flex items-center gap-1 bg-gray-100 px-2 py-1 rounded">
-                      <span className="text-xs text-gray-600">
-                        Meeting:{" "}
-                        <span className="font-mono font-semibold">
-                          {clipboardMeeting.meetingNumber}
-                        </span>
-                      </span>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="ml-1 p-1 h-6 w-6"
-                        onClick={() => {
-                          setClipboardMeeting(null);
-                          setMeetingNumber("");
-                          setPassWord("");
-                        }}
-                        title="Remove meeting link"
-                      >
-                        <X className="w-4 h-4 text-gray-400 hover:text-red-500" />
-                      </Button>
-                    </div>
-                  )}
-                </div>
-                {/* Right: Join meeting button */}
+        <div className="fixed top-0 left-0 w-full h-full flex flex-col items-center justify-center bg-background z-40 overflow-y-auto">
+          <FeatureLanding />
+          <div className="flex flex-1 items-center justify-center w-full bg-blue-50 p-8">
+            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+              <DialogTrigger asChild>
                 <Button
-                  onClick={getSignature}
-                  className="px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg shadow-lg transition-all duration-200 hover:scale-105"
-                  disabled={!clipboardMeeting}
+                  variant="outline"
+                  className="bg-background/90 backdrop-blur-sm mx-auto text-lg px-8 py-4 shadow-xl border-2 border-blue-200 hover:border-blue-400 transition-all"
                 >
-                  <Video className="mr-2 h-5 w-5" />
-                  Start AI-Powered Meeting
+                  <Sparkles className="mr-2 h-5 w-5 text-blue-500" />
+                  Start AI Copilot Meeting
                 </Button>
-              </div>
-            </DialogContent>
-          </Dialog>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-3xl px-6 py-8">
+                <DialogHeader>
+                  <DialogTitle className="flex items-center gap-2">
+                    <Sparkles className="h-6 w-6 text-blue-500" />
+                    AI Copilot Meeting Preparation
+                  </DialogTitle>
+                  <DialogDescription>
+                    You can use this AI input to customize your AI agent. Tell the AI what you want
+                    help with during this meeting—such as inviting people, creating a todo list, or
+                    summarizing key points.
+                  </DialogDescription>
+                </DialogHeader>
+                {/* Only AI input remains above, meeting join row below */}
+                <div className="flex flex-col gap-6 mt-4">
+                  <MeetingAIInput
+                    onContentChange={(content) => {
+                      console.log("MeetingAIInput content:", content);
+                    }}
+                    onFilesChange={(files) => {
+                      console.log("MeetingAIInput files:", files);
+                    }}
+                    onTodosChange={(newTodos) => {
+                      setTodos((prev) => [
+                        ...newTodos.map((content) => ({
+                          id: `${Date.now()}-${Math.random()}`,
+                          content,
+                          completed: false,
+                        })),
+                        ...prev,
+                      ]);
+                    }}
+                  />
+                </div>
+                {/* Clipboard + Start Meeting row */}
+                <div className="flex flex-row items-center gap-3 mt-6 pt-4 border-t w-full justify-between">
+                  {/* Left: Copy button and tip/error */}
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={handleReadClipboard}
+                      disabled={isReadingClipboard}
+                      title="Paste Zoom meeting link from clipboard"
+                    >
+                      <ClipboardList className="text-muted-foreground" />
+                    </Button>
+                    {!clipboardMeeting && (
+                      <span className="text-xs text-gray-400">
+                        Paste meeting link here
+                        {clipboardError && (
+                          <span className="ml-2 text-red-500">{clipboardError}</span>
+                        )}
+                      </span>
+                    )}
+                    {clipboardMeeting && (
+                      <div className="flex items-center gap-1 bg-gray-100 px-2 py-1 rounded">
+                        <span className="text-xs text-gray-600">
+                          Meeting:{" "}
+                          <span className="font-mono font-semibold">
+                            {clipboardMeeting.meetingNumber}
+                          </span>
+                        </span>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="ml-1 p-1 h-6 w-6"
+                          onClick={() => {
+                            setClipboardMeeting(null);
+                            setMeetingNumber("");
+                            setPassWord("");
+                          }}
+                          title="Remove meeting link"
+                        >
+                          <X className="w-4 h-4 text-gray-400 hover:text-red-500" />
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                  {/* Right: Join meeting button */}
+                  <Button
+                    onClick={getSignature}
+                    className="px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg shadow-lg transition-all duration-200 hover:scale-105"
+                    disabled={!clipboardMeeting}
+                  >
+                    <Video className="mr-2 h-5 w-5" />
+                    Start AI-Powered Meeting
+                  </Button>
+                </div>
+              </DialogContent>
+            </Dialog>
+          </div>
         </div>
       )}
       <div className="flex flex-col gap-6 fixed top-[100px] left-0 w-full z-50">

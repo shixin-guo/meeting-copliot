@@ -662,11 +662,7 @@ Format as markdown with clear sections.`;
       <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4 mb-2">
         <div className="flex-1">
           <h1 className="text-3xl font-bold">
-            {isTitleLoading ? (
-              <Skeleton className="h-10 w-64 mb-2" />
-            ) : (
-              meetingData.title
-            )}
+            {isTitleLoading ? <Skeleton className="h-10 w-64 mb-2" /> : meetingData.title}
           </h1>
           <div className="text-muted-foreground mt-1 text-sm flex items-center gap-2">
             <div className=" flex -space-x-2 ">
@@ -1157,7 +1153,9 @@ Format as markdown with clear sections.`;
                     </div>
                     <div className="flex flex-wrap gap-2">
                       {isNextStepsLoading ? (
-                        <div className="animate-pulse h-[100px] w-full bg-muted/50 rounded" >Generating next steps...</div>
+                        <div className="animate-pulse h-[100px] w-full bg-muted/50 rounded">
+                          Generating next steps...
+                        </div>
                       ) : (
                         [
                           "Conversation",
@@ -1191,7 +1189,9 @@ Format as markdown with clear sections.`;
                         <li>Review and finalize the API documentation by end of week.</li>
                         <li>Schedule a stakeholder review meeting for next Tuesday.</li>
                         <li>Complete mobile app wireframes and share with the team.</li>
-                        <li>Integrate Sentiment Service feedback into the next product iteration.</li>
+                        <li>
+                          Integrate Sentiment Service feedback into the next product iteration.
+                        </li>
                       </ul>
                     )}
                   </div>

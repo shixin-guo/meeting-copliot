@@ -488,9 +488,9 @@ function connectToMediaWebSocket(mediaUrl, meetingUuid, streamId, signalingSocke
              
 
           let { user_id, user_name, data: videoData, timestamp } = msg.content;
-          let buffer = Buffer.from(videoData, 'base64');
-          console.log('Video data received');
-          saveRawVideo(buffer, user_name, timestamp, meetingUuid);
+          // let buffer = Buffer.from(videoData, 'base64');
+          // console.log('Video data received');
+          // saveRawVideo(buffer, user_name, timestamp, meetingUuid);
       }
 
       if (msg.msg_type === 16 && msg.content && msg.content.data) {
@@ -548,10 +548,11 @@ function connectToMediaWebSocket(mediaUrl, meetingUuid, streamId, signalingSocke
             console.warn(`⚠️ Skipping small JPEG (${buffer.length} bytes)`);
             return;
           }
-          if (frameCounter <= 1000) {
+          if (frameCounter <= 10) {
             console.log(`⏭️ Skipping initial JPEG frame #${frameCounter}`);
             return;
           }
+          console.log('JPEG data written');
 
           fs.writeFileSync(filePath, buffer);
           // console.log(`💾 Saved JPEG to: ${filePath}`);

@@ -14,7 +14,7 @@ const openai = new OpenAI({
  */
 export async function extractTodosWithOpenRouter(input) {
   const systemPrompt = `You are a helpful assistant that extracts a todo list from meeting notes. Return only the todo items as a JSON array of strings, nothing else.`;
-  const userPrompt = `Extract the todo list from the following meeting input. If no todos are found, return an empty array.\n\nInput:\n${input}`;
+  const userPrompt = `Extract the top 5 todo list from the following meeting input. If no todos are found, return an empty array.\n\nInput:\n${input}`;
 
   const response = await openai.chat.completions.create({
     model: "openai/gpt-4o-mini", // Updated to a model that supports structured outputs

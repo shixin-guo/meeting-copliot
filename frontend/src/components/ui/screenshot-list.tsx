@@ -2,6 +2,7 @@
 
 import React from "react";
 import { Camera, ChevronDown, ChevronUp } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { removeJsonTags } from "@/lib/utils";
 import { AIResponse } from "./kibo-ui/ai/response";
 
@@ -20,6 +21,8 @@ export function ScreenshotList({ screenshots }: ScreenshotListProps) {
   const [expandedIds, setExpandedIds] = React.useState<string[]>([]);
   const ocrRefs = React.useRef<Record<string, HTMLDivElement | null>>({});
   const [overflowIds, setOverflowIds] = React.useState<string[]>([]);
+  const [dialogOpen, setDialogOpen] = React.useState(false);
+  const [selectedScreenshot, setSelectedScreenshot] = React.useState<Screenshot | null>(null);
 
   // Record the time when the component is mounted
   const [pageLoadTime] = React.useState(() => new Date());
@@ -78,7 +81,7 @@ export function ScreenshotList({ screenshots }: ScreenshotListProps) {
                 // biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
                 <div key={screenshot.id + index} className="hover:shadow-md transition-shadow">
                   <div className="flex items-center justify-between">
-                    <div className="text-md font-bold text-gray-600 dark:text-gray-300">
+                    <div className="text-md font-bold text-gray-600 dark:text-gray-300 mb-2">
                       {formatDurationSincePageLoad(screenshot.timestamp)}
                     </div>
                   </div>
@@ -88,6 +91,10 @@ export function ScreenshotList({ screenshots }: ScreenshotListProps) {
                       src={screenshot.dataUrl}
                       alt={`Screenshot ${screenshot.id}`}
                       className="object-cover cursor-pointer hover:opacity-90 transition-opacity rounded-t-md"
+                      onClick={() => {
+                        setSelectedScreenshot(screenshot);
+                        setDialogOpen(true);
+                      }}
                     />
                     {/* OCR Result under image */}
                     {screenshot.ocrResult && (
@@ -136,6 +143,29 @@ export function ScreenshotList({ screenshots }: ScreenshotListProps) {
           )}
         </div>
       </div>
+      {/* Dialog for large image and OCR result */}
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Screenshot Preview</DialogTitle>
+          </DialogHeader>
+          {selectedScreenshot && (
+            <div className="flex flex-col items-center gap-4">
+              <img
+                src={selectedScreenshot.dataUrl}
+                alt="Large Screenshot"
+                className="max-h-[400px] w-auto rounded shadow border"
+                style={{ maxWidth: "100%" }}
+              />
+              {selectedScreenshot.ocrResult && (
+                <div className="w-full bg-gray-50 dark:bg-gray-900 border rounded p-3 mt-2 text-gray-800 dark:text-gray-200 text-sm whitespace-pre-wrap">
+                  <AIResponse>{removeJsonTags(selectedScreenshot.ocrResult)}</AIResponse>
+                </div>
+              )}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
