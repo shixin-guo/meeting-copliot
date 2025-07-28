@@ -42,15 +42,21 @@ export async function preloadRetrieverOnce() {
 /**
  * Uses OpenRouter LLM to generate a response from transcript and retrieved context.
  * @param {string} transcript - Input transcript
+ * @param {string} [ocrResult] - Optional OCR result from screenshot
  * @returns {Promise<string>} AI-generated response
  */
-export async function askLLMWithTranscript(transcript) {
+export async function askLLMWithTranscript(transcript, ocrResult = null) {
   if (!retriever) {
     throw new Error("❌ Retriever is not initialized. Call preloadRetrieverOnce() first.");
   }
 
   console.log("📝 Received transcript:");
   console.log(transcript);
+
+  if (ocrResult) {
+    console.log("📸 Received OCR result:");
+    console.log(ocrResult);
+  }
 
   console.log("🔍 Retrieving relevant context from documents...");
   const contextDocs = await retriever.getRelevantDocuments(transcript);
@@ -66,17 +72,24 @@ export async function askLLMWithTranscript(transcript) {
 
   const context = contextDocs.map((doc) => doc.pageContent).join("\n\n");
 
+  // Build the input section based on available data
+  let inputSection = `<transcript>${transcript}</transcript>`;
+  if (ocrResult) {
+    inputSection += `\n    <screenshot_content>${ocrResult}</screenshot_content>`;
+  }
+  inputSection += `\n    <context>${context}</context>`;
+
   const prompt = `
 <scenario>
   <role>customer_support</role>
   <input>
-    <transcript>${transcript}</transcript>
-    <context>${context}</context>
+    ${inputSection}
   </input>
   <instruction>
-    Use the context to answer the customer's question from the transcript.
+    Use the context and screenshot content (if available) to answer the customer's question from the transcript.
     Your answer should be helpful, concise, and formatted in bullet points.
-    use markdown format to answer the question."
+    If screenshot content is provided, incorporate relevant information from it into your response.
+    Use markdown format to answer the question.
   </instruction>
 </scenario>
 `.trim();

@@ -53,7 +53,7 @@ function App() {
   // State for dialog and meeting status
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   type MeetingStep = "before" | "in" | "after";
-  const [meetingStep, setMeetingStep] = useState<MeetingStep>("before");
+  const [meetingStep, setMeetingStep] = useState<MeetingStep>("in");
 
   // State for live transcripts
   type TranscriptLine = {
@@ -342,13 +342,13 @@ function App() {
 
   // Mock meeting data for the follow-up component
   const mockMeetingData = {
-    id: "meeting-123",
-    title: "Zoom AI features demo",
-    date: new Date(),
-    participants: ["john@example.com", "jane@example.com", "bob@example.com"],
+    id: "demo-meeting-001",
+    title: "AI Meeting Copilot Product Demo",
+    date: new Date("2024-07-28T14:00:00"),
+    participants: ["shixin.guo@company.com", "eric.yuan@zoom.com", "sarah.tech@client.com", "mike.cto@client.com"],
     transcripts: transcripts,
     screenshots: screenshots,
-    summary: "Meeting summary will be generated...",
+    summary: "Product demonstration meeting showcasing AI Meeting Copilot features to potential enterprise client. Discussion covered real-time in-meeting AI capabilities, and competitive advantages. Shixin Guo is the customer, Eric Yuan is the sales representative",
   };
 
   // Dark mode toggle

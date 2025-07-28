@@ -141,7 +141,7 @@ function ManagementBar({
     dataUrl: string;
     timestamp: Date;
     ocrResult?: string;
-  } | null>(null);
+  } | null>(screenshots[screenshots.length - 1]);
 
   const managementBarRef = useRef<HTMLDivElement>(null);
 
@@ -162,6 +162,11 @@ function ManagementBar({
     ask: askButtonRef,
     liveInsight: useRef<HTMLButtonElement>(null),
   };
+  useEffect(() => {
+    if (screenshots.length > 0) {
+      setSelectedScreenshot(screenshots[screenshots.length - 1]);
+    }
+  }, [screenshots]);
 
   // Close dropdown when clicking outside any open dropdown and its button
   useEffect(() => {
@@ -231,11 +236,25 @@ function ManagementBar({
     setResponseContent("");
     try {
       setStatus("streaming");
-      // Call the backend API with the question
+      
+      // Get the latest screenshot's OCR result if available
+      const latestScreenshot = screenshots.length > 0 ? screenshots[0] : null;
+      const ocrResult = latestScreenshot?.ocrResult;
+      
+      // Prepare the request body
+      const requestBody: { question: string; ocrResult?: string } = { question: text };
+      if (ocrResult && ocrResult !== "Analyzing..." && ocrResult !== "OCR failed.") {
+        requestBody.ocrResult = ocrResult;
+        console.log("📸 Including OCR result in AI request:", ocrResult.substring(0, 100) + "...");
+      } else {
+        console.log("📝 Sending AI request without OCR result");
+      }
+      
+      // Call the backend API with the question and OCR result
       const res = await fetch("http://localhost:3789/api/ask-kb", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ question: text }),
+        body: JSON.stringify(requestBody),
       });
       if (!res.ok) {
         throw new Error("Failed to get response");
@@ -387,7 +406,7 @@ function ManagementBar({
                       <AIInputSubmit disabled={!text} status={status} />
                     </AIInputToolbar>
                     {/* Screenshot thumbnails and OCR results */}
-                    {screenshots.length > 0 && (
+                    {selectedScreenshot && (
                       <div className="mt-1 flex flex-wrap gap-4 px-1">
                         {(() => {
                           const s = screenshots[screenshots.length - 1];
@@ -411,6 +430,7 @@ function ManagementBar({
                                   setDialogOpen(true);
                                 }}
                               />
+                             
                               {/* Delete button */}
                               <button
                                 className="absolute top-0 right-0 bg-black/60 hover:bg-red-600 text-white rounded-full p-1"
@@ -469,6 +489,15 @@ function ManagementBar({
                       <X size={16} />
                     </button>
                     <div className="pr-6">
+                      {/* Show OCR inclusion indicator */}
+                      {selectedScreenshot && selectedScreenshot.ocrResult && 
+                       selectedScreenshot.ocrResult !== "Analyzing..." && 
+                       selectedScreenshot.ocrResult !== "OCR failed." && (
+                        <div className="mb-2 flex items-center gap-2 text-xs text-blue-400">
+                          <Camera size={12} />
+                          <span>Screenshot content included in analysis</span>
+                        </div>
+                      )}
                       <AIResponse className="max-h-[464px] overflow-y-auto">
                         {responseContent}
                       </AIResponse>

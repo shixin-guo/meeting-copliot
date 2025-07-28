@@ -1,11 +1,10 @@
-# AI Meeting Copilot - Feature Presentation Script
-*Revolutionizing Meetings with AI-Powered Intelligence*
+# AI Meeting Copilot 
 
 ---
 
 ## Opening: The Meeting Revolution
 
-Welcome everyone! Today I'm excited to present **AI Meeting Copilot** - a revolutionary platform that transforms every aspect of your meeting experience through the power of artificial intelligence.
+Welcome everyone! Today I'm excited to present **AI Meeting Copilot** - a  platform that workflow every aspect of your meeting experience through the power of artificial intelligence.
 
 Imagine having an intelligent assistant that not only joins your meetings but actively helps you prepare, participate, and follow up with unprecedented efficiency. That's exactly what we've built.
 
@@ -15,7 +14,7 @@ Imagine having an intelligent assistant that not only joins your meetings but ac
 
 Let me walk you through a complete meeting lifecycle using a realistic business scenario:
 
-**Scenario**: Sarah, a product manager, has a critical stakeholder review meeting with the engineering team and external clients to discuss Q2 product roadmap and address technical concerns.
+**Scenario**: Shixin, a sales representative, has a critical product demo meeting with a potential enterprise client to showcase our AI Meeting Copilot features and address their specific business needs.
 
 ---
 
@@ -25,24 +24,23 @@ Let me walk you through a complete meeting lifecycle using a realistic business 
 *"Before the meeting even starts, AI becomes your strategic partner"*
 
 **What happens:**
-- Sarah opens the AI Meeting Copilot and clicks "Start AI-Powered Meeting"
+- Shixin opens the AI Meeting Copilot and clicks "Start AI-Powered Meeting"
 - She pastes her Zoom meeting link - the system automatically extracts meeting ID and password
 - The AI preparation interface opens with smart document processing capabilities
 
 **Key AI Features Demonstrated:**
 
 #### 1. **Smart Document Processing with RAG Pipeline**
-- **Scenario**: Sarah uploads previous meeting notes, technical specifications, and competitor analysis documents
-- **Technical Magic**: Our LangChain-powered RAG system processes PDF, DOCX, TXT, and Markdown files
+- **Scenario**: Shixin uploads previous meeting notes, technical specifications, and competitor analysis documents
+- **Technical Magic**: Our RAG system processes PDF, DOCX, TXT, and Markdown files
 - **AI Processing**: Documents are chunked, embedded, and indexed for intelligent retrieval during the meeting
 - **User Experience**: Progress indicators show AI analyzing and preparing contextual knowledge
 
 #### 2. **Intelligent Todo Extraction**
-- **Scenario**: Sarah types: "Meeting with Eric Yuan about Zoom SDK integration. Need to discuss API rate limits, review mobile app wireframes, schedule CEO sync next week"
+- **Scenario**: Shixin types: "Meeting with Eric Yuan about Zoom AI features. Need to discuss API rate limits, schedule CEO sync next week"
 - **AI Power**: OpenRouter GPT-4 with structured JSON output extracts actionable items
 - **Result**: Automatically generates todo list:
   - "Discuss API rate limits with Eric Yuan"
-  - "Review mobile app wireframes"
   - "Schedule CEO sync meeting next week"
 
 #### 3. **Context-Aware Meeting Preparation**
@@ -51,7 +49,7 @@ Let me walk you through a complete meeting lifecycle using a realistic business 
 - **Integration Features**: 
   - Import CRM contract data with one click
   - Insert previous meeting action items
-  - Web search integration for real-time information
+  - Web search integration for real-time information Perplexity
 
 ---
 
@@ -67,17 +65,12 @@ Let me walk you through a complete meeting lifecycle using a realistic business 
 **Key AI Features Demonstrated:**
 
 #### 1. **Live Transcription & AI Q&A**
-- **Technical Foundation**: Zoom RTMS (Real-Time Media Streaming) provides live audio/video/transcript streams
-- **AI Processing**: WebSocket connection streams transcripts to our AI backend
-- **Scenario**: During the technical discussion, Sarah asks the AI: "What are the API rate limits we discussed in previous meetings?"
 - **AI Magic**: The system searches through uploaded documents and live transcript using RAG pipeline
 - **Response**: Provides contextual answer with relevant documentation snippets
 
 #### 2. **Smart Screenshot Analysis with OCR**
 - **Scenario**: Eric shares his screen showing technical architecture diagrams
-- **One-Click Capture**: Sarah clicks the camera button in the AI toolbar
-- **AI Processing**: OpenRouter Gemini Vision model performs OCR and content analysis
-- **Intelligent Output**: Extracts text, identifies key technical components, formats as markdown
+- **Intelligent Output**: Extracts text, identifies key technical components
 - **Live Integration**: Screenshot content becomes searchable and can be referenced by AI assistant
 
 #### 3. **Real-Time Meeting Intelligence**
@@ -106,33 +99,13 @@ Let me walk you through a complete meeting lifecycle using a realistic business 
 **Key AI Features Demonstrated:**
 
 #### 1. **Intelligent Meeting Summarization**
-- **AI Processing**: Claude 3 Haiku analyzes complete transcript, screenshots, and uploaded documents
-- **Smart Output**: Generates structured summary with:
-  - Meeting overview and key discussion points
-  - Decisions made and action items
-  - Next steps and deadlines
-  - Important notes and insights
-- **Editable Results**: AI-generated content can be refined and customized
-
 #### 2. **AI-Powered Email Generation**
-- **Scenario**: Sarah needs to send follow-up email to all participants
-- **AI Magic**: System analyzes meeting content and generates professional email including:
-  - Thank you message and attendance acknowledgment
-  - Key discussion points summary
-  - Action items with assigned responsibilities
-  - Next meeting scheduling suggestions
-- **Smart Recipient Management**: Automatically populates attendees with CC options
+- **Scenario**: Shixin needs to send follow-up email to all participants
+- **AI Magic**: System analyzes meeting content and generates professional email 
 
 #### 3. **Task Management & Assignment**
-- **Intelligent Task Creation**: AI extracts action items and suggests assignments
-- **Priority Analysis**: AI recommends priority levels based on discussion context
-- **Due Date Intelligence**: Suggests realistic deadlines based on meeting content
-- **Follow-up Automation**: Integration with task management systems
 
 #### 4. **Advanced Export Capabilities**
-- **Multi-Platform Integration**: Export to Salesforce, Google Drive, and other platforms
-- **Format Options**: PDF summaries, transcript files, screenshot archives
-- **Calendar Integration**: Automatic next meeting scheduling with AI-generated agendas
 
 #### 5. **AI Meeting Q&A**
 - **Post-Meeting Intelligence**: Ask any question about the meeting content
@@ -141,22 +114,6 @@ Let me walk you through a complete meeting lifecycle using a realistic business 
 
 ---
 
-## Technical Architecture Highlights
-
-### AI Integration Stack
-- **LLM Integration**: OpenRouter with Claude 3 Haiku, GPT-4, and Gemini models
-- **Document Processing**: LangChain RAG pipeline with vector embeddings
-- **Real-Time Processing**: Zoom RTMS for live audio/video/transcript streaming
-- **Vision AI**: OCR and content analysis for screenshots
-- **Structured Output**: JSON mode for reliable data extraction
-
-### Modern Technology Stack
-- **Frontend**: React 18 with TypeScript, Radix UI components, Tailwind CSS
-- **Backend**: Node.js with Express, WebSocket support for real-time features
-- **Meeting Integration**: Zoom Meeting SDK with JWT authentication
-- **File Processing**: Support for PDF, DOCX, TXT, MD with modular loaders
-
----
 
 ## Business Impact & Scenarios
 
