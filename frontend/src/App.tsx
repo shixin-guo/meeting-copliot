@@ -53,7 +53,7 @@ function App() {
   // State for dialog and meeting status
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   type MeetingStep = "before" | "in" | "after";
-  const [meetingStep, setMeetingStep] = useState<MeetingStep>("in");
+  const [meetingStep, setMeetingStep] = useState<MeetingStep>("before");
 
   // State for live transcripts
   type TranscriptLine = {

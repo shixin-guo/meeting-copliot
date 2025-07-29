@@ -1,10 +1,12 @@
 "use client";
 
 import React from "react";
-import { Camera, ChevronDown, ChevronUp } from "lucide-react";
+import { Camera, ChevronDown, ChevronUp, Search } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 import { removeJsonTags } from "@/lib/utils";
 import { AIResponse } from "./kibo-ui/ai/response";
+import ReactMarkdown from "react-markdown";
 
 interface Screenshot {
   id: string;
@@ -23,6 +25,7 @@ export function ScreenshotList({ screenshots }: ScreenshotListProps) {
   const [overflowIds, setOverflowIds] = React.useState<string[]>([]);
   const [dialogOpen, setDialogOpen] = React.useState(false);
   const [selectedScreenshot, setSelectedScreenshot] = React.useState<Screenshot | null>(null);
+  const [searchTerm, setSearchTerm] = React.useState("");
 
   // Record the time when the component is mounted
   const [pageLoadTime] = React.useState(() => new Date());
@@ -38,6 +41,29 @@ export function ScreenshotList({ screenshots }: ScreenshotListProps) {
     const minutes = String(Math.floor((diff % 3600) / 60)).padStart(2, "0");
     const seconds = String(diff % 60).padStart(2, "0");
     return `${hours}:${minutes}:${seconds}`;
+  };
+
+  // Filter screenshots based on search term
+  const filteredScreenshots = screenshots.filter((screenshot) => {
+    if (!searchTerm.trim()) {
+      return true;
+    }
+    
+    const searchLower = searchTerm.toLowerCase();
+    const ocrText = screenshot.ocrResult?.toLowerCase() || "";
+    const title = formatDurationSincePageLoad(screenshot.timestamp).toLowerCase();
+    
+    return ocrText.includes(searchLower) || title.includes(searchLower);
+  });
+
+  // Highlight search terms in text using markdown bold
+  const highlightSearchTerms = (text: string, searchTerm: string) => {
+    if (!searchTerm.trim()) {
+      return text;
+    }
+    
+    const regex = new RegExp(`(${searchTerm.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")})`, "gi");
+    return text.replace(regex, "**$1**");
   };
 
   React.useEffect(() => {
@@ -64,20 +90,45 @@ export function ScreenshotList({ screenshots }: ScreenshotListProps) {
 
   return (
     <>
+      {/* Search Input */}
+      <div className="p-3 border-b border-border/20">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
+          <Input
+            type="text"
+            placeholder="Search screenshots by keyword..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full pl-10 bg-background/20 border-border/30 text-sm"
+          />
+        </div>
+        {searchTerm && (
+          <div className="text-sm text-muted-foreground mt-1">
+            Found {filteredScreenshots.length} screenshot{filteredScreenshots.length !== 1 ? "s" : ""} with "{searchTerm}"
+          </div>
+        )}
+      </div>
+
       {/* Screenshot List (no fixed position) */}
-      <div className=" rounded-lg shadow-lg  overflow-hidden">
+      <div className="rounded-lg shadow-lg overflow-hidden">
         <div className="overflow-y-auto max-h-[400px]">
           {screenshots.length === 0 ? (
-            <div className="p-8 text-center ">
+            <div className="p-8 text-center">
               <Camera size={48} className="mx-auto mb-4 opacity-50" />
               <p>No screenshots yet</p>
               <p className="text-sm mt-2">
                 Click the button in the bottom right to start taking screenshots
               </p>
             </div>
+          ) : filteredScreenshots.length === 0 ? (
+            <div className="p-8 text-center">
+              <Search size={48} className="mx-auto mb-4 opacity-50" />
+              <p>No results found for "{searchTerm}"</p>
+              <p className="text-sm mt-2">Try a different search term</p>
+            </div>
           ) : (
             <div className="">
-              {screenshots.map((screenshot, index) => (
+              {filteredScreenshots.map((screenshot, index) => (
                 // biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
                 <div key={screenshot.id + index} className="hover:shadow-md transition-shadow">
                   <div className="flex items-center justify-between">
@@ -115,7 +166,9 @@ export function ScreenshotList({ screenshots }: ScreenshotListProps) {
                               : undefined
                           }
                         >
-                          <AIResponse>{removeJsonTags(screenshot.ocrResult)}</AIResponse>
+                          <AIResponse>
+                              {highlightSearchTerms(removeJsonTags(screenshot.ocrResult), searchTerm)}
+                          </AIResponse>
                         </div>
                         {overflowIds.includes(screenshot.id) && (
                           <button
@@ -159,7 +212,9 @@ export function ScreenshotList({ screenshots }: ScreenshotListProps) {
               />
               {selectedScreenshot.ocrResult && (
                 <div className="w-full bg-gray-50 dark:bg-gray-900 border rounded p-3 mt-2 text-gray-800 dark:text-gray-200 text-sm whitespace-pre-wrap">
-                  <AIResponse>{removeJsonTags(selectedScreenshot.ocrResult)}</AIResponse>
+                  <AIResponse>
+                      {highlightSearchTerms(removeJsonTags(selectedScreenshot.ocrResult), searchTerm)}
+                  </AIResponse>
                 </div>
               )}
             </div>

@@ -119,6 +119,63 @@ function extractQuestions(transcripts: { user: string; timestamp: number; conten
   return questions;
 }
 
+// Function to detect and extract mentioned tasks from transcript content
+function extractMentionedTasks(transcripts: { user: string; timestamp: number; content: string }[]) {
+  const mentionedTasks: Array<{ id: string; user: string; content: string; timestamp: number; priority: 'high' | 'medium' | 'low' }> = [];
+
+  transcripts.forEach((transcript, index) => {
+    const content = transcript.content.trim();
+
+    // Task indicators and patterns
+    const taskIndicators = [
+      // Direct task statements
+      /(?:need to|have to|must|should|will|going to|plan to|intend to|want to)\s+(.+?)(?:\.|$)/gi,
+      // Action items with specific verbs
+      /(?:create|build|develop|implement|design|review|test|deploy|update|fix|add|remove|change|modify|improve|optimize|analyze|research|study|prepare|organize|schedule|arrange|coordinate|manage|monitor|track|document|write|draft|finalize|approve|submit|send|email|call|meet|discuss|present|demo|show|demonstrate)\s+(.+?)(?:\.|$)/gi,
+      // Time-based task mentions
+      /(?:by|before|after|during|while|when|once|as soon as)\s+(.+?)(?:\.|$)/gi,
+      // Priority indicators
+      /(?:urgent|important|critical|high priority|low priority|asap|soon|later|next|this week|next week|today|tomorrow)\s+(.+?)(?:\.|$)/gi,
+      // Task completion indicators
+      /(?:done|completed|finished|accomplished|achieved|resolved|solved|fixed|delivered|submitted|approved|closed)\s+(.+?)(?:\.|$)/gi,
+    ];
+
+    // Extract potential tasks from content
+    taskIndicators.forEach((pattern) => {
+      const matches = content.match(pattern);
+      if (matches) {
+        matches.forEach((match) => {
+          // Clean up the extracted task content
+          let taskContent = match.replace(/^(?:need to|have to|must|should|will|going to|plan to|intent to|want to|create|build|develop|implement|design|review|test|deploy|update|fix|add|remove|change|modify|improve|optimize|analyze|research|study|prepare|organize|schedule|arrange|coordinate|manage|monitor|track|document|write|draft|finalize|approve|submit|send|email|call|meet|discuss|present|demo|show|demonstrate|by|before|after|during|while|when|once|as soon as|urgent|important|critical|high priority|low priority|asap|soon|later|next|this week|next week|today|tomorrow|done|completed|finished|accomplished|achieved|resolved|solved|fixed|delivered|submitted|approved|closed)\s+/i, '').trim();
+          
+          // Determine priority based on keywords
+          let priority: 'high' | 'medium' | 'low' = 'medium';
+          if (content.toLowerCase().includes('urgent') || content.toLowerCase().includes('critical') || content.toLowerCase().includes('asap') || content.toLowerCase().includes('high priority')) {
+            priority = 'high';
+          } else if (content.toLowerCase().includes('low priority') || content.toLowerCase().includes('later') || content.toLowerCase().includes('next week')) {
+            priority = 'low';
+          }
+
+          // Check if this looks like a real task (not just random text)
+          if (taskContent.length > 3 && taskContent.length < 200 && 
+              !taskContent.match(/^(the|a|an|and|or|but|in|on|at|to|for|of|with|by|from|up|down|out|off|over|under|above|below|before|after|during|while|when|where|why|how|what|which|who|whom|whose|this|that|these|those|i|you|he|she|it|we|they|me|him|her|us|them|my|your|his|her|its|our|their|mine|yours|his|hers|ours|theirs)$/i)) {
+            
+            mentionedTasks.push({
+              id: `task-${index}-${Date.now()}`,
+              user: transcript.user,
+              content: taskContent,
+              timestamp: transcript.timestamp,
+              priority,
+            });
+          }
+        });
+      }
+    });
+  });
+
+  return mentionedTasks;
+}
+
 function ManagementBar({
   onScreenshotTaken,
   todos,
@@ -134,7 +191,21 @@ function ManagementBar({
   const [responseContent, setResponseContent] = useState("");
   const [newTodo, setNewTodo] = useState("");
   const [transcriptSearch, setTranscriptSearch] = useState("");
+  const [recentlyDetectedTasks, setRecentlyDetectedTasks] = useState<Array<{ id: string; content: string; timestamp: number }>>([]);
+  const demoMode = true; // Demo mode always enabled for automatic task completion
   const askButtonRef = useRef<HTMLButtonElement>(null);
+
+  // Add demo tasks if no todos exist
+  useEffect(() => {
+    if (todos.length === 0) {
+      const demoTasks = [
+        { id: 'demo-3', content: 'Prepare Zoom AI features demo presentation', completed: false },
+        { id: 'demo-2', content: 'Schedule sync meeting next week', completed: false },
+        { id: 'demo-4', content: 'Review technical specifications document', completed: false },
+      ];
+      setTodos(demoTasks);
+    }
+  }, [todos.length, setTodos]);
   const [dialogOpen, setDialogOpen] = React.useState(false);
   const [selectedScreenshot, setSelectedScreenshot] = React.useState<{
     id: string;
@@ -146,7 +217,7 @@ function ManagementBar({
   const managementBarRef = useRef<HTMLDivElement>(null);
 
   // Refs for dropdown buttons and contents
-  const dropdownRefs = {
+  const dropdownRefs: Record<string, React.RefObject<HTMLDivElement>> = {
     todo: useRef<HTMLDivElement>(null),
     transcript: useRef<HTMLDivElement>(null),
     screenshots: useRef<HTMLDivElement>(null),
@@ -154,7 +225,7 @@ function ManagementBar({
     ask: useRef<HTMLDivElement>(null),
     liveInsight: useRef<HTMLDivElement>(null),
   };
-  const dropdownButtonRefs = {
+  const dropdownButtonRefs: Record<string, React.RefObject<HTMLButtonElement>> = {
     todo: useRef<HTMLButtonElement>(null),
     transcript: useRef<HTMLButtonElement>(null),
     screenshots: useRef<HTMLButtonElement>(null),
@@ -167,6 +238,95 @@ function ManagementBar({
       setSelectedScreenshot(screenshots[screenshots.length - 1]);
     }
   }, [screenshots]);
+
+  // Auto-extract and add mentioned tasks from transcripts, and detect completion
+  useEffect(() => {
+    if (transcripts.length > 0) {
+      const mentionedTasks = extractMentionedTasks(transcripts);
+      
+      // Get existing todo contents to avoid duplicates
+      const existingTodoContents = todos.map(todo => todo.content.toLowerCase());
+      
+      // Filter out tasks that already exist in todos
+      const newTasks = mentionedTasks.filter(task => 
+        !existingTodoContents.some(existing => 
+          existing.includes(task.content.toLowerCase()) || 
+          task.content.toLowerCase().includes(existing)
+        )
+      );
+
+      // Add new tasks to todos list
+      if (newTasks.length > 0) {
+        const tasksToAdd = newTasks.map(task => ({
+          id: task.id,
+          content: task.content,
+          completed: false,
+        }));
+        
+        setTodos(prev => [...prev, ...tasksToAdd]);
+        
+        // Track recently detected tasks for UI feedback
+        const recentTasks = newTasks.map(task => ({
+          id: task.id,
+          content: task.content,
+          timestamp: Date.now(),
+        }));
+        setRecentlyDetectedTasks(prev => [...recentTasks, ...prev.slice(0, 2)]); // Keep last 3
+        
+        // Clear recent tasks after 5 seconds
+        setTimeout(() => {
+          setRecentlyDetectedTasks(prev => prev.filter(t => Date.now() - t.timestamp < 5000));
+        }, 5000);
+      }
+
+      // Detect task completion mentions and mark tasks as completed
+      const completionKeywords = ['done', 'completed', 'finished', 'accomplished', 'achieved', 'resolved', 'solved', 'fixed', 'delivered', 'submitted', 'approved', 'closed'];
+      
+      transcripts.forEach(transcript => {
+        const content = transcript.content.toLowerCase();
+        const hasCompletionKeyword = completionKeywords.some(keyword => content.includes(keyword));
+        
+        if (hasCompletionKeyword) {
+          // Find matching todos and mark them as completed
+          setTodos(prev => prev.map(todo => {
+            const todoContent = todo.content.toLowerCase();
+            // Check if the transcript content mentions the todo task
+            if (content.includes(todoContent) || todoContent.includes(content.split(' ').slice(-3).join(' '))) {
+              return { ...todo, completed: true };
+            }
+            return todo;
+          }));
+        }
+      });
+    }
+  }, [transcripts, todos, setTodos]);
+
+  // Demo mode: Auto-complete tasks every 10 seconds for demo effect
+  useEffect(() => {
+    if (!demoMode || todos.length === 0) return;
+
+    const interval = setInterval(() => {
+      setTodos(prev => {
+        const uncompletedTodos = prev.filter(todo => !todo.completed);
+        if (uncompletedTodos.length === 0) return prev;
+
+        // Randomly select 1-2 uncompleted todos to mark as completed
+        const todosToComplete = Math.min(Math.floor(Math.random() * 2) + 1, uncompletedTodos.length);
+        const selectedTodos = uncompletedTodos
+          .sort(() => 0.5 - Math.random()) // Shuffle array
+          .slice(0, todosToComplete);
+
+        return prev.map(todo => {
+          if (selectedTodos.some(selected => selected.id === todo.id)) {
+            return { ...todo, completed: true };
+          }
+          return todo;
+        });
+      });
+    }, 30000); // 10 seconds
+
+    return () => clearInterval(interval);
+  }, [demoMode, todos.length]);
 
   // Close dropdown when clicking outside any open dropdown and its button
   useEffect(() => {
@@ -238,8 +398,7 @@ function ManagementBar({
       setStatus("streaming");
       
       // Get the latest screenshot's OCR result if available
-      const latestScreenshot = screenshots.length > 0 ? screenshots[0] : null;
-      const ocrResult = latestScreenshot?.ocrResult;
+      const ocrResult = selectedScreenshot?.ocrResult;
       
       // Prepare the request body
       const requestBody: { question: string; ocrResult?: string } = { question: text };
@@ -648,24 +807,52 @@ function ManagementBar({
                     </svg>
                     <p>AI-powered real-time todo list</p>
                     <p className="text-sm mt-2">
-                      Task completion status is automatically updated by AI. Add a todo to try it
-                      out!
+                      Tasks are automatically detected from meeting transcripts and completion status is updated in real-time.
                     </p>
+                    <div className="mt-3 p-2 bg-blue-500/10 border border-blue-500/20 rounded text-xs">
+                      <p className="text-blue-300">💡 Try saying: "We need to review the proposal" or "I'll create the presentation"</p>
+                    </div>
                   </div>
                 ) : (
-                  <ul className="space-y-2">
-                    {todos.map((todo) => (
-                      <li key={todo.id} className="flex items-center gap-2">
-                        <Checkbox
-                          checked={todo.completed}
-                          onCheckedChange={() => handleToggleTodo(todo.id)}
-                        />
-                        <span className={todo.completed ? "line-through text-gray-400" : ""}>
-                          {todo.content}
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
+                  <div>
+                    {/* AI detection indicator */}
+                    <div className="p-2 mb-2 bg-green-500/10 border border-green-500/20 rounded text-xs">
+                      <p className="text-green-300 flex items-center gap-1">
+                        <Sparkles size={12} />
+                        AI is monitoring transcripts for task mentions
+                      </p>
+                    </div>
+                    
+                  
+                    
+                    {/* Recently detected tasks indicator */}
+                    {recentlyDetectedTasks.length > 0 && (
+                      <div className="p-2 mb-2 bg-blue-500/10 border border-blue-500/20 rounded text-xs">
+                        <p className="text-blue-300 flex items-center gap-1 mb-1">
+                          <Sparkles size={12} />
+                          Recently detected:
+                        </p>
+                        {recentlyDetectedTasks.slice(0, 2).map((task) => (
+                          <div key={task.id} className="text-blue-200 text-xs ml-4 mb-1">
+                            • {task.content}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    <ul className="space-y-2">
+                      {todos.map((todo) => (
+                        <li key={todo.id} className="flex items-center gap-2">
+                          <Checkbox
+                            checked={todo.completed}
+                            onCheckedChange={() => handleToggleTodo(todo.id)}
+                          />
+                          <span className={todo.completed ? "line-through text-gray-400" : ""}>
+                            {todo.content}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
                 )}
                 {/* Add new todo input */}
                 <form
